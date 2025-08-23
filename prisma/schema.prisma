@@ -1,0 +1,128 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Admin {
+  id           String   @id @default(uuid())
+  name         String
+  login        String   @unique
+  passwordHash String   @map("password_hash")
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("admins")
+}
+
+model Customer {
+  id        String   @id @default(uuid())
+  name      String
+  phone     String
+  address   String?
+  createdAt DateTime @default(now()) @map("created_at")
+  orders    Order[]
+
+  @@map("customers")
+}
+
+model Product {
+  id          String              @id @default(uuid())
+  name        String
+  description String?
+  category    String
+  imageUrl    String?             @map("image_url")
+  active      Boolean             @default(true)
+  createdAt   DateTime            @default(now()) @map("created_at")
+  orderItems  OrderItem[]
+  complements ProductComplement[]
+  variations  ProductVariation[]
+
+  @@map("products")
+}
+
+model ProductVariation {
+  id                  String      @id @default(uuid())
+  productId           String      @map("product_id")
+  name                String
+  basePrice           Float       @map("base_price")
+  includedComplements Int         @map("included_complements")
+  includedFruits      Int         @map("included_fruits")
+  createdAt           DateTime    @default(now()) @map("created_at")
+  orderItems          OrderItem[]
+  product             Product     @relation(fields: [productId], references: [id])
+
+  @@map("product_variations")
+}
+
+model Complement {
+  id                   String                @id @default(uuid())
+  name                 String
+  type                 String
+  extraPrice           Float                 @map("extra_price")
+  included             Boolean               @default(true)
+  imageUrl             String?               @map("image_url")
+  active               Boolean               @default(true)
+  createdAt            DateTime              @default(now()) @map("created_at")
+  orderItemComplements OrderItemComplement[]
+  productComplements   ProductComplement[]
+
+  @@map("complements")
+}
+
+model ProductComplement {
+  id           String     @id @default(uuid())
+  productId    String     @map("product_id")
+  complementId String     @map("complement_id")
+  active       Boolean    @default(true)
+  complement   Complement @relation(fields: [complementId], references: [id])
+  product      Product    @relation(fields: [productId], references: [id])
+
+  @@unique([productId, complementId])
+  @@map("product_complements")
+}
+
+model Order {
+  id              String      @id @default(uuid())
+  customerId      String      @map("customer_id")
+  status          String      @default("pending")
+  whatsappMessage String?     @map("whatsapp_message")
+  total           Float       @default(0)
+  createdAt       DateTime    @default(now()) @map("created_at")
+  customer        Customer    @relation(fields: [customerId], references: [id])
+  items           OrderItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id          String                @id @default(uuid())
+  orderId     String                @map("order_id")
+  productId   String                @map("product_id")
+  variationId String?               @map("variation_id")
+  note        String?
+  finalPrice  Float                 @map("final_price")
+  createdAt   DateTime              @default(now()) @map("created_at")
+  order       Order                 @relation(fields: [orderId], references: [id])
+  product     Product               @relation(fields: [productId], references: [id])
+  variation   ProductVariation?     @relation(fields: [variationId], references: [id])
+  complements OrderItemComplement[]
+
+  @@map("order_items")
+}
+
+model OrderItemComplement {
+  id           String     @id @default(uuid())
+  orderItemId  String     @map("order_item_id")
+  complementId String     @map("complement_id")
+  type         String
+  price        Float
+  complement   Complement @relation(fields: [complementId], references: [id])
+  orderItem    OrderItem  @relation(fields: [orderItemId], references: [id])
+
+  @@map("order_item_complements")
+}
