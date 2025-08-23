@@ -1,8 +1,8 @@
 
 import { Product } from '@/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
+import Image from 'next/image';
 
 interface ProductCardProps {
   product: Product;
@@ -19,7 +19,7 @@ export function ProductCard({ product, onOpenModal }: ProductCardProps) {
       <CardContent>
         <div className="relative aspect-square">
           <Image
-            src={product.imageUrl || '/placeholder.svg'}
+            src={product.imageUrl || '/acai.jpg'}
             alt={product.name}
             fill
             className="object-cover rounded-md"
