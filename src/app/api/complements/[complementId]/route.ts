@@ -1,12 +1,12 @@
-
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-export async function GET(req: Request, { params }: { params: { complementId: string } }) {
+export async function GET(req: Request, context: { params: { complementId: string } }) {
   try {
+    const { complementId } = context.params;
     const complement = await prisma.complement.findUnique({
       where: {
-        id: params.complementId,
+        id: complementId,
       },
     });
 
@@ -21,8 +21,9 @@ export async function GET(req: Request, { params }: { params: { complementId: st
   }
 }
 
-export async function PUT(req: Request, { params }: { params: { complementId: string } }) {
+export async function PUT(req: Request, context: { params: { complementId: string } }) {
   try {
+    const { complementId } = context.params;
     const body = await req.json();
     const { name, type, extraPrice, included, imageUrl } = body;
 
@@ -32,7 +33,7 @@ export async function PUT(req: Request, { params }: { params: { complementId: st
 
     const complement = await prisma.complement.update({
       where: {
-        id: params.complementId,
+        id: complementId,
       },
       data: {
         name,
@@ -50,11 +51,12 @@ export async function PUT(req: Request, { params }: { params: { complementId: st
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: { complementId: string } }) {
+export async function DELETE(req: Request, context: { params: { complementId: string } }) {
   try {
+    const { complementId } = context.params;
     await prisma.complement.delete({
       where: {
-        id: params.complementId,
+        id: complementId,
       },
     });
 

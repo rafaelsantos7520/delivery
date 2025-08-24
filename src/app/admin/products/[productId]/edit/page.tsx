@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Button } from "@/components/ui/button";
@@ -96,7 +95,7 @@ export default function EditProductPage() {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="name">Nome</Label>
+            <Label htmlFor="name">Nome do Produto</Label>
             <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
           </div>
           <div className="space-y-2">
@@ -112,18 +111,32 @@ export default function EditProductPage() {
             <Input id="imageUrl" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
           </div>
 
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Variações</h3>
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Variações de Tamanho e Preço</h3>
             {variations.map((variation, index) => (
-              <div key={index} className="grid grid-cols-5 gap-4 mb-4 p-4 border rounded-md">
-                <Input placeholder="Nome (ex: 500ml)" value={variation.name} onChange={(e) => handleVariationChange(index, 'name', e.target.value)} />
-                <Input type="number" placeholder="Preço Base" value={variation.basePrice} onChange={(e) => handleVariationChange(index, 'basePrice', parseFloat(e.target.value))} />
-                <Input type="number" placeholder="Compl. Inclusos" value={variation.includedComplements} onChange={(e) => handleVariationChange(index, 'includedComplements', parseInt(e.target.value))} />
-                <Input type="number" placeholder="Frutas Inclusas" value={variation.includedFruits} onChange={(e) => handleVariationChange(index, 'includedFruits', parseInt(e.target.value))} />
-                <Button type="button" variant="destructive" onClick={() => removeVariation(index)}>Remover</Button>
+              <div key={index} className="p-4 border rounded-lg space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor={`var-name-${index}`}>Nome (ex: 500ml)</Label>
+                        <Input id={`var-name-${index}`} value={variation.name} onChange={(e) => handleVariationChange(index, 'name', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor={`var-price-${index}`}>Preço Base (R$)</Label>
+                        <Input id={`var-price-${index}`} type="number" value={variation.basePrice} onChange={(e) => handleVariationChange(index, 'basePrice', parseFloat(e.target.value) || 0)} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor={`var-comp-${index}`}>Complementos Inclusos</Label>
+                        <Input id={`var-comp-${index}`} type="number" value={variation.includedComplements} onChange={(e) => handleVariationChange(index, 'includedComplements', parseInt(e.target.value) || 0)} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor={`var-fruit-${index}`}>Frutas Inclusas</Label>
+                        <Input id={`var-fruit-${index}`} type="number" value={variation.includedFruits} onChange={(e) => handleVariationChange(index, 'includedFruits', parseInt(e.target.value) || 0)} />
+                    </div>
+                </div>
+                <Button type="button" variant="destructive" size="sm" onClick={() => removeVariation(index)}>Remover Variação</Button>
               </div>
             ))}
-            <Button type="button" onClick={addVariation}>Adicionar Variação</Button>
+            <Button type="button" variant="outline" onClick={addVariation}>Adicionar Variação</Button>
           </div>
 
           {error && <p className="text-sm text-red-500">{error}</p>}

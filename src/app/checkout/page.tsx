@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useCart } from '@/context/CartContext';
 import { useRouter } from 'next/navigation';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Info } from 'lucide-react';
 
 interface Address {
   zipCode: string;
@@ -34,7 +34,7 @@ export default function CheckoutPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setAddress(prev => ({ ...prev, [name]: value }));
   };
@@ -118,7 +118,8 @@ export default function CheckoutPage() {
         message += `-----------------------\n`;
       });
 
-      message += `\n*Total do Pedido:* R$ ${totalPrice.toFixed(2)}`;
+      message += `\n*Total (produtos):* R$ ${totalPrice.toFixed(2)}`;
+      message += `\n*Taxa de entrega a ser informada.*`;
 
       const phone = '5511999999999'; // Replace with actual number
       const encodedMessage = encodeURIComponent(message);
@@ -183,6 +184,7 @@ export default function CheckoutPage() {
                 <div className="sm:col-span-3">
                     <label htmlFor="zipCode" className="block text-sm font-medium text-gray-700">CEP</label>
                     <input type="text" name="zipCode" id="zipCode" value={address.zipCode} onChange={handleAddressChange} onBlur={handleCepBlur} className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" />
+                    <p className="text-xs text-gray-500 mt-1">Preencha para buscar o endereço automaticamente.</p>
                 </div>
                 <div className="sm:col-span-6">
                     <label htmlFor="street" className="block text-sm font-medium text-gray-700">Rua</label>
@@ -223,8 +225,15 @@ export default function CheckoutPage() {
 
           <div className="mt-8 bg-white p-6 rounded-lg shadow-md">
              <div className="flex justify-between items-center text-xl font-bold mb-4">
-                <span>Total:</span>
+                <span>Total (produtos):</span>
                 <span>R$ {totalPrice.toFixed(2)}</span>
+            </div>
+            <div className="flex items-center p-3 mb-4 text-sm text-blue-800 rounded-lg bg-blue-50" role="alert">
+                <Info className="flex-shrink-0 inline w-4 h-4 mr-3" />
+                <span className="sr-only">Info</span>
+                <div>
+                    A taxa de entrega será informada via WhatsApp.
+                </div>
             </div>
             <button 
                 onClick={handleConfirmOrder}
