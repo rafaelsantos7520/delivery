@@ -5,14 +5,65 @@ import { useCart } from '@/context/CartContext';
 import { useRouter } from 'next/navigation';
 import { Trash2 } from 'lucide-react';
 
+interface Address {
+  zipCode: string;
+  street: string;
+  number: string;
+  complement: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  reference: string;
+}
+
 export default function CheckoutPage() {
   const { cartItems, removeFromCart, totalPrice, clearCart } = useCart();
   const router = useRouter();
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
-  const [customerAddress, setCustomerAddress] = useState('');
+  const [address, setAddress] = useState<Address>({
+    zipCode: '',
+    street: '',
+    number: '',
+    complement: '',
+    neighborhood: '',
+    city: '',
+    state: '',
+    reference: '',
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setAddress(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleCepBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
+    const zipCode = e.target.value.replace(/\D/g, '');
+    if (zipCode.length !== 8) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${zipCode}/json/`);
+      const data = await response.json();
+      if (data.erro) {
+        setError('CEP não encontrado.');
+        return;
+      }
+      setAddress(prev => ({
+        ...prev,
+        street: data.logradouro,
+        neighborhood: data.bairro,
+        city: data.localidade,
+        state: data.uf,
+      }));
+      setError(null);
+    } catch (err) {
+      setError('Falha ao buscar o CEP.');
+    }
+  };
 
   const handleConfirmOrder = async () => {
     setIsLoading(true);
@@ -28,7 +79,7 @@ export default function CheckoutPage() {
           customer: {
             name: customerName,
             phone: customerPhone,
-            address: customerAddress,
+            address: address,
           },
           cartItems,
           totalPrice,
@@ -36,52 +87,38 @@ export default function CheckoutPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Falha ao criar o pedido. Tente novamente.');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Falha ao criar o pedido. Tente novamente.');
       }
 
-      // Create WhatsApp message
-      let message = `*Novo Pedido Recebido*
-
-`;
-      message += `*Cliente:* ${customerName}
-`;
-      message += `*Telefone:* ${customerPhone}
-`;
-      message += `*Endereço:* ${customerAddress}
-
-`;
-      message += `*Itens do Pedido:*
-`;
-      message += `-----------------------
-`;
+      let message = `*Novo Pedido Recebido*\n\n`;
+      message += `*Cliente:* ${customerName}\n`;
+      message += `*Telefone:* ${customerPhone}\n`;
+      message += `*Endereço:*\n`;
+      message += `  - CEP: ${address.zipCode}\n`;
+      message += `  - Rua: ${address.street}, Nº: ${address.number}\n`;
+      message += `  - Bairro: ${address.neighborhood}\n`;
+      message += `  - Cidade/UF: ${address.city}/${address.state}\n`;
+      if(address.complement) message += `  - Complemento: ${address.complement}\n`;
+      if(address.reference) message += `  - Ponto de Referência: ${address.reference}\n`;
+      message += `\n*Itens do Pedido:*\n`;
+      message += `-----------------------\n`;
 
       cartItems.forEach(item => {
-        message += `*Produto:* ${item.product.name} (${item.selectedVariation.name})
-`;
-        
+        message += `*Produto:* ${item.product.name} (${item.selectedVariation.name})\n`;
         const included = item.complementSelections.filter(c => c.isSelected);
         if (included.length > 0) {
-          message += `  *Inclusos:*
-`;
-          included.forEach(c => { message += `    - ${c.name}
-`; });
+          message += `  *Inclusos:* ${included.map(c => c.name).join(', ')}\n`;
         }
-
         const extras = item.complementSelections.filter(c => c.extraQuantity > 0);
         if (extras.length > 0) {
-          message += `  *Extras:*
-`;
-          extras.forEach(c => { message += `    - ${c.name} (${c.extraQuantity}x)
-`; });
+          message += `  *Extras:* ${extras.map(c => `${c.name} (x${c.extraQuantity})`).join(', ')}\n`;
         }
-        message += `  *Subtotal:* R$ ${item.totalPrice.toFixed(2)}
-`;
-        message += `-----------------------
-`;
+        message += `  *Subtotal:* R$ ${item.totalPrice.toFixed(2)}\n`;
+        message += `-----------------------\n`;
       });
 
-      message += `
-*Total do Pedido:* R$ ${totalPrice.toFixed(2)}`;
+      message += `\n*Total do Pedido:* R$ ${totalPrice.toFixed(2)}`;
 
       const phone = '5511999999999'; // Replace with actual number
       const encodedMessage = encodeURIComponent(message);
@@ -97,12 +134,12 @@ export default function CheckoutPage() {
     }
   };
 
+  const isFormValid = customerName && customerPhone && address.zipCode && address.street && address.number && address.neighborhood && address.city && address.state;
+
   return (
     <div className="container mx-auto px-4 py-12">
       <h1 className="text-4xl font-bold text-purple-800 mb-8">Checkout</h1>
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-        {/* Order Summary */}
         <div className="lg:col-span-2">
           <h2 className="text-2xl font-semibold text-purple-700 mb-6">Resumo do Pedido</h2>
           {cartItems.length === 0 ? (
@@ -130,7 +167,6 @@ export default function CheckoutPage() {
           )}
         </div>
 
-        {/* Customer Details */}
         <div>
           <h2 className="text-2xl font-semibold text-purple-700 mb-6">Seus Dados</h2>
           <div className="bg-white p-6 rounded-lg shadow-md space-y-4">
@@ -142,9 +178,40 @@ export default function CheckoutPage() {
               <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Telefone (WhatsApp)</label>
               <input type="text" id="phone" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" />
             </div>
-            <div>
-              <label htmlFor="address" className="block text-sm font-medium text-gray-700">Endereço Completo</label>
-              <textarea id="address" value={customerAddress} onChange={e => setCustomerAddress(e.target.value)} rows={3} className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500"></textarea>
+            
+            <div className="grid grid-cols-1 gap-y-4 gap-x-4 sm:grid-cols-6">
+                <div className="sm:col-span-3">
+                    <label htmlFor="zipCode" className="block text-sm font-medium text-gray-700">CEP</label>
+                    <input type="text" name="zipCode" id="zipCode" value={address.zipCode} onChange={handleAddressChange} onBlur={handleCepBlur} className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" />
+                </div>
+                <div className="sm:col-span-6">
+                    <label htmlFor="street" className="block text-sm font-medium text-gray-700">Rua</label>
+                    <input type="text" name="street" id="street" value={address.street} onChange={handleAddressChange} className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" />
+                </div>
+                <div className="sm:col-span-2">
+                    <label htmlFor="number" className="block text-sm font-medium text-gray-700">Número</label>
+                    <input type="text" name="number" id="number" value={address.number} onChange={handleAddressChange} className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" />
+                </div>
+                <div className="sm:col-span-4">
+                    <label htmlFor="complement" className="block text-sm font-medium text-gray-700">Complemento</label>
+                    <input type="text" name="complement" id="complement" value={address.complement} onChange={handleAddressChange} className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" />
+                </div>
+                <div className="sm:col-span-6">
+                    <label htmlFor="neighborhood" className="block text-sm font-medium text-gray-700">Bairro</label>
+                    <input type="text" name="neighborhood" id="neighborhood" value={address.neighborhood} onChange={handleAddressChange} className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" />
+                </div>
+                <div className="sm:col-span-4">
+                    <label htmlFor="city" className="block text-sm font-medium text-gray-700">Cidade</label>
+                    <input type="text" name="city" id="city" value={address.city} onChange={handleAddressChange} className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" />
+                </div>
+                <div className="sm:col-span-2">
+                    <label htmlFor="state" className="block text-sm font-medium text-gray-700">Estado</label>
+                    <input type="text" name="state" id="state" value={address.state} onChange={handleAddressChange} className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" />
+                </div>
+                 <div className="sm:col-span-6">
+                    <label htmlFor="reference" className="block text-sm font-medium text-gray-700">Ponto de Referência</label>
+                    <input type="text" name="reference" id="reference" value={address.reference} onChange={handleAddressChange} className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500" />
+                </div>
             </div>
           </div>
 
@@ -161,7 +228,7 @@ export default function CheckoutPage() {
             </div>
             <button 
                 onClick={handleConfirmOrder}
-                disabled={cartItems.length === 0 || !customerName || !customerPhone || !customerAddress || isLoading}
+                disabled={!isFormValid || cartItems.length === 0 || isLoading}
                 className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-semibold py-3 rounded-lg shadow-lg transition-all duration-300"
             >
               {isLoading ? 'Finalizando...' : 'Finalizar Pedido e Enviar via WhatsApp'}

@@ -8,6 +8,17 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+enum ComplementType {
+  ACOMPANHAMENTO
+  FRUTA
+  COBERTURA
+}
+
+enum OrderItemComplementType {
+  INCLUDED
+  EXTRA
+}
+
 model Admin {
   id           String   @id @default(uuid())
   name         String
@@ -23,7 +34,7 @@ model Customer {
   id        String   @id @default(uuid())
   name      String
   phone     String
-  address   String?
+  address   Json?
   createdAt DateTime @default(now()) @map("created_at")
   orders    Order[]
 
@@ -62,7 +73,7 @@ model ProductVariation {
 model Complement {
   id                   String                @id @default(uuid())
   name                 String
-  type                 String
+  type                 ComplementType
   extraPrice           Float                 @map("extra_price")
   included             Boolean               @default(true)
   imageUrl             String?               @map("image_url")
@@ -119,7 +130,8 @@ model OrderItemComplement {
   id           String     @id @default(uuid())
   orderItemId  String     @map("order_item_id")
   complementId String     @map("complement_id")
-  type         String
+  type         OrderItemComplementType
+  quantity     Int        @default(1)
   price        Float
   complement   Complement @relation(fields: [complementId], references: [id])
   orderItem    OrderItem  @relation(fields: [orderItemId], references: [id])

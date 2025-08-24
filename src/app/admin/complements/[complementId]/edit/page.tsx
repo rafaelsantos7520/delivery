@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Button } from "@/components/ui/button";
@@ -6,14 +5,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Complement } from "@prisma/client";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Complement, ComplementType } from "@prisma/client";
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 
 export default function EditComplementPage() {
   const [complement, setComplement] = useState<Complement | null>(null);
   const [name, setName] = useState('');
-  const [type, setType] = useState('');
+  const [type, setType] = useState<ComplementType>(ComplementType.ACOMPANHAMENTO);
   const [extraPrice, setExtraPrice] = useState(0);
   const [included, setIncluded] = useState(true);
   const [imageUrl, setImageUrl] = useState('');
@@ -86,11 +86,20 @@ export default function EditComplementPage() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="type">Tipo</Label>
-            <Input id="type" value={type} onChange={(e) => setType(e.target.value)} required placeholder="Ex: topping, fruta, cobertura" />
+            <Select value={type} onValueChange={(value) => setType(value as ComplementType)}>
+                <SelectTrigger>
+                    <SelectValue placeholder="Selecione o tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                    {Object.values(ComplementType).map(typeValue => (
+                        <SelectItem key={typeValue} value={typeValue}>{typeValue}</SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="extraPrice">Preço Extra</Label>
-            <Input id="extraPrice" type="number" value={extraPrice} onChange={(e) => setExtraPrice(parseFloat(e.target.value))} />
+            <Input id="extraPrice" type="number" value={extraPrice} onChange={(e) => setExtraPrice(parseFloat(e.target.value) || 0)} />
           </div>
           <div className="flex items-center space-x-2">
             <Switch id="included" checked={included} onCheckedChange={setIncluded} />

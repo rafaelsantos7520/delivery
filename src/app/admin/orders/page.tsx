@@ -1,19 +1,22 @@
-
 'use client';
 
-import { Order, Customer, OrderItem, Product, ProductVariation } from "@prisma/client";
+import { Order, Customer, OrderItem, Product, ProductVariation, OrderItemComplement, Complement } from "@prisma/client";
 import { useEffect, useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { OrderDetailsDialog } from "./OrderDetailsDialog";
 
 // Extend the Order type to include the relations
+type OrderItemWithRelations = OrderItem & {
+  product: Product;
+  variation: ProductVariation | null;
+  complements: (OrderItemComplement & { complement: Complement })[];
+};
+
 type OrderWithRelations = Order & {
   customer: Customer;
-  items: (OrderItem & {
-    product: Product;
-    variation: ProductVariation | null;
-  })[];
+  items: OrderItemWithRelations[];
 };
 
 export default function OrdersPage() {
@@ -78,8 +81,6 @@ export default function OrdersPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Cliente</TableHead>
-              <TableHead>Telefone</TableHead>
-              <TableHead>Itens</TableHead>
               <TableHead>Total</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Data</TableHead>
@@ -87,33 +88,16 @@ export default function OrdersPage() {
           </TableHeader>
           <TableBody>
             {orders.map((order) => (
-              <TableRow key={order.id}>
-                <TableCell>{order.customer.name}</TableCell>
-                <TableCell>{order.customer.phone}</TableCell>
-                <TableCell>
-                  {order.items.map(item => (
-                    <div key={item.id}>{item.product.name} ({item.variation?.name})</div>
-                  ))}
-                </TableCell>
-                <TableCell>R$ {order.total.toFixed(2)}</TableCell>
-                <TableCell>
-                  <Select value={order.status} onValueChange={(value) => handleStatusChange(order.id, value)}>
-                    <SelectTrigger>
-                      <SelectValue>
-                        <Badge variant={getStatusVariant(order.status)}>{order.status}</Badge>
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pending">Pendente</SelectItem>
-                      <SelectItem value="confirmed">Confirmado</SelectItem>
-                      <SelectItem value="preparing">Preparando</SelectItem>
-                      <SelectItem value="delivered">Entregue</SelectItem>
-                      <SelectItem value="canceled">Cancelado</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </TableCell>
-                <TableCell>{new Date(order.createdAt).toLocaleDateString('pt-BR')}</TableCell>
-              </TableRow>
+                <OrderDetailsDialog key={order.id} order={order}>
+                    <TableRow className="cursor-pointer">
+                        <TableCell>{order.customer.name}</TableCell>
+                        <TableCell>R$ {order.total.toFixed(2)}</TableCell>
+                        <TableCell>
+                            <Badge variant={getStatusVariant(order.status)}>{order.status.toUpperCase()}</Badge>
+                        </TableCell>
+                        <TableCell>{new Date(order.createdAt).toLocaleDateString('pt-BR')}</TableCell>
+                    </TableRow>
+                </OrderDetailsDialog>
             ))}
           </TableBody>
         </Table>

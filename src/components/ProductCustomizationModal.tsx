@@ -1,7 +1,7 @@
 'use client';
 
 import { Product } from '@/types';
-import { ProductVariation } from '@prisma/client';
+import { ProductVariation, ComplementType } from '@prisma/client';
 import { useState, useEffect } from 'react';
 import { Plus, Minus, ShoppingCart } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
@@ -9,7 +9,7 @@ import { useCart } from '@/context/CartContext';
 interface ComplementSelection {
   complementId: string;
   name: string;
-  type: string;
+  type: ComplementType;
   isSelected: boolean;
   extraQuantity: number;
   unitPrice: number;
@@ -59,7 +59,7 @@ export function ProductCustomizationModal({ product, isOpen, onOpenChange }: Pro
     onOpenChange(false);
   };
 
-  const toggleComplement = (complementId: string, name: string, type: string, unitPrice: number) => {
+  const toggleComplement = (complementId: string, name: string, type: ComplementType, unitPrice: number) => {
     setComplementSelections(prev => {
       const existing = prev.find(c => c.complementId === complementId);
       if (existing) {
@@ -74,7 +74,7 @@ export function ProductCustomizationModal({ product, isOpen, onOpenChange }: Pro
     });
   };
 
-  const updateExtraQuantity = (complementId: string, name: string, type: string, unitPrice: number, change: number) => {
+  const updateExtraQuantity = (complementId: string, name: string, type: ComplementType, unitPrice: number, change: number) => {
     setComplementSelections(prev => {
       const existing = prev.find(c => c.complementId === complementId);
       if (existing) {
@@ -93,7 +93,7 @@ export function ProductCustomizationModal({ product, isOpen, onOpenChange }: Pro
 
   const getComplementSelection = (complementId: string) => {
     const complement = complementSelections.find(c => c.complementId === complementId);
-    return complement || { complementId, name: '', type: '', isSelected: false, extraQuantity: 0, unitPrice: 0 };
+    return complement || { complementId, name: '', type: ComplementType.ACOMPANHAMENTO, isSelected: false, extraQuantity: 0, unitPrice: 0 };
   };
 
   if (!product || !isOpen) {
@@ -122,13 +122,13 @@ export function ProductCustomizationModal({ product, isOpen, onOpenChange }: Pro
   }, {} as Record<string, typeof product.complements[0]['complement'][]>);
 
   const typeNames = {
-    'acompanhamento': 'Acompanhamentos',
-    'fruta': 'Frutas',
-    'cobertura': 'Coberturas'
+    [ComplementType.ACOMPANHAMENTO]: 'Acompanhamentos',
+    [ComplementType.FRUTA]: 'Frutas',
+    [ComplementType.COBERTURA]: 'Coberturas'
   };
 
-  const selectedIncludedFruits = complementSelections.filter(c => c.type === 'fruta' && c.isSelected).length;
-  const selectedIncludedAcompanhamentos = complementSelections.filter(c => c.type === 'acompanhamento' && c.isSelected).length;
+  const selectedIncludedFruits = complementSelections.filter(c => c.type === ComplementType.FRUTA && c.isSelected).length;
+  const selectedIncludedAcompanhamentos = complementSelections.filter(c => c.type === ComplementType.ACOMPANHAMENTO && c.isSelected).length;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -179,7 +179,7 @@ export function ProductCustomizationModal({ product, isOpen, onOpenChange }: Pro
                 Acompanhamentos Inclusos
               </h3>
               {Object.entries(includedComplementsByType).map(([type, complements]) => {
-                const isFruit = type === 'fruta';
+                const isFruit = type === ComplementType.FRUTA;
                 const limit = isFruit ? selectedVariation.includedFruits : selectedVariation.includedComplements;
                 const selectedCount = isFruit ? selectedIncludedFruits : selectedIncludedAcompanhamentos;
 
@@ -188,14 +188,14 @@ export function ProductCustomizationModal({ product, isOpen, onOpenChange }: Pro
                 return (
                   <div key={type} className="mb-4">
                     <h4 className="text-md font-semibold mb-2 text-blue-700">
-                      {typeNames[type as keyof typeof typeNames] || type}
+                      {typeNames[type as ComplementType] || type}
                       <span className="text-sm font-normal text-gray-600 ml-2">
                         ({selectedCount}/{limit} selecionados)
                       </span>
                     </h4>
                     {selectedCount >= limit && (
                       <div className="mb-3 p-2 bg-yellow-100 border border-yellow-300 rounded text-sm text-yellow-800">
-                        Você já selecionou o máximo de {limit} {typeNames[type as keyof typeof typeNames]?.toLowerCase() || type} grátis para este tamanho.
+                        Você já selecionou o máximo de {limit} {typeNames[type as ComplementType]?.toLowerCase() || type} grátis para este tamanho.
                       </div>
                     )}
                     <div className="space-y-2">
@@ -208,7 +208,7 @@ export function ProductCustomizationModal({ product, isOpen, onOpenChange }: Pro
                             <input
                               type="checkbox"
                               checked={selection.isSelected}
-                              onChange={() => toggleComplement(complement.id, complement.name, type, complement.extraPrice)}
+                              onChange={() => toggleComplement(complement.id, complement.name, complement.type, complement.extraPrice)}
                               disabled={isDisabled}
                               className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
                             />
@@ -231,7 +231,7 @@ export function ProductCustomizationModal({ product, isOpen, onOpenChange }: Pro
               {Object.entries(extraComplementsByType).map(([type, complements]) => (
                 <div key={type} className="mb-4">
                   <h4 className="text-md font-semibold mb-2 text-blue-700">
-                    {typeNames[type as keyof typeof typeNames] || type}
+                    {typeNames[type as ComplementType] || type}
                   </h4>
                   <div className="space-y-2">
                     {complements.map(complement => {
@@ -243,7 +243,7 @@ export function ProductCustomizationModal({ product, isOpen, onOpenChange }: Pro
                             <div className="flex items-center gap-2">
                               <span className="text-sm text-gray-600">R$ {complement.extraPrice.toFixed(2)}</span>
                               <button
-                                onClick={() => updateExtraQuantity(complement.id, complement.name, type, complement.extraPrice, -1)}
+                                onClick={() => updateExtraQuantity(complement.id, complement.name, complement.type, complement.extraPrice, -1)}
                                 disabled={selection.extraQuantity === 0}
                                 className="w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-red-600 transition-colors text-xs"
                               >
@@ -251,7 +251,7 @@ export function ProductCustomizationModal({ product, isOpen, onOpenChange }: Pro
                               </button>
                               <span className="w-6 text-center font-semibold text-sm">{selection.extraQuantity}</span>
                               <button
-                                onClick={() => updateExtraQuantity(complement.id, complement.name, type, complement.extraPrice, 1)}
+                                onClick={() => updateExtraQuantity(complement.id, complement.name, complement.type, complement.extraPrice, 1)}
                                 className="w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center hover:bg-green-600 transition-colors text-xs"
                               >
                                 <Plus size={12} />

@@ -1,4 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
+const { PrismaClient, ComplementType } = require('@prisma/client');
 
 const prisma = new PrismaClient();
 
@@ -22,7 +22,7 @@ async function main() {
     prisma.complement.create({
       data: {
         name: 'Leite em pó',
-        type: 'acompanhamento',
+        type: ComplementType.ACOMPANHAMENTO,
         extraPrice: 0,
         included: true
       }
@@ -30,7 +30,7 @@ async function main() {
     prisma.complement.create({
       data: {
         name: 'Leite condensado',
-        type: 'acompanhamento',
+        type: ComplementType.ACOMPANHAMENTO,
         extraPrice: 0,
         included: true
       }
@@ -38,7 +38,7 @@ async function main() {
     prisma.complement.create({
       data: {
         name: 'Granola',
-        type: 'acompanhamento',
+        type: ComplementType.ACOMPANHAMENTO,
         extraPrice: 0,
         included: true
       }
@@ -46,7 +46,7 @@ async function main() {
     prisma.complement.create({
       data: {
         name: 'Amendoim granulado',
-        type: 'acompanhamento',
+        type: ComplementType.ACOMPANHAMENTO,
         extraPrice: 0,
         included: true
       }
@@ -54,7 +54,7 @@ async function main() {
     prisma.complement.create({
       data: {
         name: 'Ovomaltine em pó',
-        type: 'acompanhamento',
+        type: ComplementType.ACOMPANHAMENTO,
         extraPrice: 0,
         included: true
       }
@@ -62,7 +62,7 @@ async function main() {
     prisma.complement.create({
       data: {
         name: 'Jujuba',
-        type: 'acompanhamento',
+        type: ComplementType.ACOMPANHAMENTO,
         extraPrice: 0,
         included: true
       }
@@ -70,7 +70,7 @@ async function main() {
     prisma.complement.create({
       data: {
         name: 'Chococookies',
-        type: 'acompanhamento',
+        type: ComplementType.ACOMPANHAMENTO,
         extraPrice: 0,
         included: true
       }
@@ -78,7 +78,7 @@ async function main() {
     prisma.complement.create({
       data: {
         name: 'Morango',
-        type: 'acompanhamento',
+        type: ComplementType.ACOMPANHAMENTO,
         extraPrice: 0,
         included: true
       }
@@ -86,7 +86,7 @@ async function main() {
     prisma.complement.create({
       data: {
         name: 'Kiwi',
-        type: 'acompanhamento',
+        type: ComplementType.ACOMPANHAMENTO,
         extraPrice: 0,
         included: true
       }
@@ -98,7 +98,7 @@ async function main() {
     prisma.complement.create({
       data: {
         name: 'Banana',
-        type: 'fruta',
+        type: ComplementType.FRUTA,
         extraPrice: 0,
         included: true
       }
@@ -106,7 +106,7 @@ async function main() {
     prisma.complement.create({
       data: {
         name: 'Uva',
-        type: 'fruta',
+        type: ComplementType.FRUTA,
         extraPrice: 0,
         included: true
       }
@@ -114,7 +114,7 @@ async function main() {
     prisma.complement.create({
       data: {
         name: 'Abacate',
-        type: 'fruta',
+        type: ComplementType.FRUTA,
         extraPrice: 0,
         included: true
       }
@@ -126,7 +126,7 @@ async function main() {
     prisma.complement.create({
       data: {
         name: 'Bis',
-        type: 'cobertura',
+        type: ComplementType.COBERTURA,
         extraPrice: 1.99,
         included: false
       }
@@ -134,7 +134,7 @@ async function main() {
     prisma.complement.create({
       data: {
         name: 'Nutella',
-        type: 'cobertura',
+        type: ComplementType.COBERTURA,
         extraPrice: 3.99,
         included: false
       }
@@ -142,7 +142,7 @@ async function main() {
     prisma.complement.create({
       data: {
         name: 'Creme de ninho',
-        type: 'cobertura',
+        type: ComplementType.COBERTURA,
         extraPrice: 3.99,
         included: false
       }
@@ -150,7 +150,7 @@ async function main() {
     prisma.complement.create({
       data: {
         name: 'Creme de avelã',
-        type: 'cobertura',
+        type: ComplementType.COBERTURA,
         extraPrice: 3.99,
         included: false
       }
@@ -158,7 +158,7 @@ async function main() {
     prisma.complement.create({
       data: {
         name: 'Kit Kat',
-        type: 'cobertura',
+        type: ComplementType.COBERTURA,
         extraPrice: 1.99,
         included: false
       }
@@ -166,7 +166,7 @@ async function main() {
     prisma.complement.create({
       data: {
         name: 'Serenata de amor',
-        type: 'cobertura',
+        type: ComplementType.COBERTURA,
         extraPrice: 2.99,
         included: false
       }
@@ -174,7 +174,7 @@ async function main() {
     prisma.complement.create({
       data: {
         name: 'Gota de chocolate',
-        type: 'cobertura',
+        type: ComplementType.COBERTURA,
         extraPrice: 2.99,
         included: false
       }
@@ -182,7 +182,7 @@ async function main() {
     prisma.complement.create({
       data: {
         name: 'M&M',
-        type: 'cobertura',
+        type: ComplementType.COBERTURA,
         extraPrice: 2.99,
         included: false
       }
@@ -361,7 +361,15 @@ async function main() {
     data: {
       name: 'Cliente Exemplo',
       phone: '(98) 98426-7957',
-      address: 'Endereço de exemplo'
+      address: {
+        street: "Rua Exemplo",
+        number: "123",
+        neighborhood: "Bairro Fictício",
+        city: "São Luís",
+        state: "MA",
+        zipCode: "65000-000",
+        reference: "Próximo ao local de referência"
+      }
     }
   });
 

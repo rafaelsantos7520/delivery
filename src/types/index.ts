@@ -1,5 +1,5 @@
 
-import { Product as PrismaProduct, ProductVariation, ProductComplement, Complement } from '@prisma/client';
+import { Product as PrismaProduct, ProductVariation, ProductComplement, Complement, ComplementType } from '@prisma/client';
 
 export type Product = PrismaProduct & {
   variations: ProductVariation[];
@@ -12,5 +12,5 @@ export type SelectedComplement = {
   complementId: string;
   name: string;
   price: number;
-  type: string;
+  type: ComplementType;
 };

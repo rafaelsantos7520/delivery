@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { CartItem } from '@/context/CartContext';
+import { OrderItemComplementType } from '@prisma/client';
 
 export async function GET() {
   try {
@@ -91,7 +92,8 @@ export async function POST(req: Request) {
             data: {
               orderItemId: orderItem.id,
               complementId: c.complementId,
-              type: 'included',
+              type: OrderItemComplementType.INCLUDED,
+              quantity: 1,
               price: 0,
             },
           });
@@ -103,7 +105,8 @@ export async function POST(req: Request) {
             data: {
               orderItemId: orderItem.id,
               complementId: c.complementId,
-              type: `extra (x${c.extraQuantity})`,
+              type: OrderItemComplementType.EXTRA,
+              quantity: c.extraQuantity,
               price: c.unitPrice * c.extraQuantity,
             },
           });
