@@ -4,9 +4,15 @@ import Link from 'next/link';
 import { Button } from './ui/button';
 import { Phone, ShoppingCart } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
+import { useState, useEffect } from 'react';
 
 export function Header() {
   const { cartCount } = useCart();
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   return (
     <header className="bg-white/80 backdrop-blur-sm sticky top-0 z-40 border-b">
@@ -23,7 +29,7 @@ export function Header() {
             <Link href="/checkout">
                 <Button variant="ghost" className="relative">
                     <ShoppingCart className="h-6 w-6 text-purple-700" />
-                    {cartCount > 0 && (
+                    {hasMounted && cartCount > 0 && (
                         <span className="absolute -top-1 -right-1 bg-yellow-500 text-purple-900 text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">{cartCount}</span>
                     )}
                 </Button>

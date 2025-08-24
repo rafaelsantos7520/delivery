@@ -1,10 +1,33 @@
-import { Sidebar } from "./Sidebar";
+'use client';
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+import { Sidebar } from "./Sidebar";
+import { AdminAuthProvider, useAdminAuth } from "@/context/AdminAuthContext";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+
+function AdminPagesLayout({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, loading } = useAdminAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      router.push('/admin/login');
+    }
+  }, [isAuthenticated, loading, router]);
+
+  if (loading) {
+    return (
+        <div className="flex items-center justify-center min-h-screen">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600"></div>
+        </div>
+    );
+  }
+
+  // if (!isAuthenticated) {
+  //   console.log('Not authenticated, redirecting to login');
+  //   return null; // or a redirect, though the useEffect handles it
+  // }
+
   return (
     <div className="flex min-h-screen bg-gray-100">
       <Sidebar />
@@ -12,5 +35,13 @@ export default function AdminLayout({
         {children}
       </main>
     </div>
+  );
+}
+
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <AdminAuthProvider>
+      <AdminPagesLayout>{children}</AdminPagesLayout>
+    </AdminAuthProvider>
   );
 }

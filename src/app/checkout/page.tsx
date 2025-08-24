@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCart } from '@/context/CartContext';
 import { useRouter } from 'next/navigation';
 import { Trash2, Info } from 'lucide-react';
@@ -33,6 +33,11 @@ export default function CheckoutPage() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -136,6 +141,17 @@ export default function CheckoutPage() {
   };
 
   const isFormValid = customerName && customerPhone && address.zipCode && address.street && address.number && address.neighborhood && address.city && address.state;
+
+  if (!hasMounted) {
+    return (
+        <div className="container mx-auto px-4 py-12">
+          <h1 className="text-4xl font-bold text-purple-800 mb-8">Checkout</h1>
+          <div className="flex items-center justify-center">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600"></div>
+          </div>
+        </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-12">

@@ -17,11 +17,11 @@ export async function POST(req: Request) {
       return new NextResponse(JSON.stringify({ message: 'Credenciais inválidas' }), { status: 401 });
     }
 
-    const token = jwt.sign({ id: admin.id, login: admin.login }, process.env.JWT_SECRET || 'your-secret-key', {
+    const token = jwt.sign({ id: admin.id, login: admin.login }, process.env.JWT_SECRET!, {
       expiresIn: '1d',
     });
 
-    cookies().set('token', token, {
+    (await cookies()).set('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',

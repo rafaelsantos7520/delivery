@@ -1,14 +1,13 @@
-
 'use client';
 
-import { createContext, useState, useContext, ReactNode } from 'react';
+import { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { Product } from '@/types';
-import { ProductVariation } from '@prisma/client';
+import { ProductVariation, ComplementType } from '@prisma/client';
 
 interface ComplementSelection {
   complementId: string;
   name: string;
-  type: string;
+  type: ComplementType;
   isSelected: boolean;
   extraQuantity: number;
   unitPrice: number;
@@ -27,7 +26,6 @@ interface CartContextType {
   cartItems: CartItem[];
   addToCart: (item: Omit<CartItem, 'id'>) => void;
   removeFromCart: (itemId: string) => void;
-  updateItemQuantity: (itemId: string, quantity: number) => void; // This might be complex with current structure
   clearCart: () => void;
   cartCount: number;
   totalPrice: number;
@@ -35,12 +33,31 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
+const isClient = typeof window !== 'undefined';
+
 export const CartProvider = ({ children }: { children: ReactNode }) => {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [cartItems, setCartItems] = useState<CartItem[]>(() => {
+    if (!isClient) return [];
+    try {
+      const item = window.localStorage.getItem('acai-prime-cart');
+      return item ? JSON.parse(item) : [];
+    } catch (error) {
+      console.error("Failed to parse cart from localStorage", error);
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    if (!isClient) return;
+    try {
+      window.localStorage.setItem('acai-prime-cart', JSON.stringify(cartItems));
+    } catch (error) {
+      console.error("Failed to save cart to localStorage", error);
+    }
+  }, [cartItems]);
 
   const addToCart = (item: Omit<CartItem, 'id'>) => {
     setCartItems(prevItems => [...prevItems, { ...item, id: new Date().toISOString() }]);
-    // In a real app, you might want to merge items if they are identical
   };
 
   const removeFromCart = (itemId: string) => {
@@ -53,7 +70,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const cartCount = cartItems.length;
   const totalPrice = cartItems.reduce((acc, item) => acc + item.totalPrice, 0);
-
 
   return (
     <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, clearCart, cartCount, totalPrice }}>
