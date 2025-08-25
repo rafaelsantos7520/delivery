@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Loading } from "@/components/ui/loading";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -48,7 +49,7 @@ export default function ProductsPage() {
   };
 
   if (loading) {
-    return <p>Carregando produtos...</p>;
+    return <Loading />;
   }
 
   return (

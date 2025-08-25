@@ -17,7 +17,7 @@ export default function NewProductPage() {
   const [error, setError] = useState('');
   const router = useRouter();
 
-  const handleVariationChange = (index: number, field: string, value: any) => {
+  const handleVariationChange = (index: number, field: string, value: string | number) => {
     const newVariations = [...variations];
     newVariations[index] = { ...newVariations[index], [field]: value };
     setVariations(newVariations);
@@ -49,7 +49,7 @@ export default function NewProductPage() {
         const data = await response.json();
         setError(data.message || 'Failed to create product');
       }
-    } catch (error) {
+    } catch {
       setError('An unexpected error occurred');
     }
   };

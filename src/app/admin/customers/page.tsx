@@ -4,8 +4,14 @@ import { Customer, Order } from "@prisma/client";
 import { useEffect, useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loading } from "@/components/ui/loading";
 
 type CustomerWithOrders = Customer & { orders: Order[] };
+
+type Address = {
+  street: string;
+  number: string;
+};
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<CustomerWithOrders[]>([]);
@@ -29,7 +35,7 @@ export default function CustomersPage() {
   }, []);
 
   if (loading) {
-    return <p>Carregando clientes...</p>;
+    return <Loading />;
   }
 
   return (
@@ -50,7 +56,7 @@ export default function CustomersPage() {
           </TableHeader>
           <TableBody>
             {customers.map((customer) => {
-              const address = customer.address as any;
+              const address = customer.address as Address | null;
               return (
                 <TableRow key={customer.id}>
                   <TableCell>{customer.name}</TableCell>

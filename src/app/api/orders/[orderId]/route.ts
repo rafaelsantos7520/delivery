@@ -2,8 +2,9 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-export async function PUT(req: Request, { params }: { params: { orderId: string } }) {
+export async function PUT(req: Request, { params }: { params: Promise<{ orderId: string }> }) {
   try {
+    const { orderId } = await params;
     const body = await req.json();
     const { status } = body;
 
@@ -13,7 +14,7 @@ export async function PUT(req: Request, { params }: { params: { orderId: string 
 
     const order = await prisma.order.update({
       where: {
-        id: params.orderId,
+        id: orderId,
       },
       data: {
         status,

@@ -2,11 +2,12 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-export async function GET(req: Request, { params }: { params: { productId: string } }) {
+export async function GET(req: Request, { params }: { params: Promise<{ productId: string }> }) {
   try {
+    const { productId } = await params;
     const product = await prisma.product.findUnique({
       where: {
-        id: params.productId,
+        id: productId,
       },
       include: {
         variations: true,
@@ -24,8 +25,9 @@ export async function GET(req: Request, { params }: { params: { productId: strin
   }
 }
 
-export async function PUT(req: Request, { params }: { params: { productId: string } }) {
+export async function PUT(req: Request, { params }: { params: Promise<{ productId: string }> }) {
   try {
+    const { productId } = await params;
     const body = await req.json();
     const { name, description, category, imageUrl, variations } = body;
 
@@ -35,18 +37,18 @@ export async function PUT(req: Request, { params }: { params: { productId: strin
 
     const updatedProduct = await prisma.$transaction(async (tx) => {
       await tx.productVariation.deleteMany({
-        where: { productId: params.productId },
+        where: { productId },
       });
 
       const product = await tx.product.update({
-        where: { id: params.productId },
+        where: { id: productId },
         data: {
           name,
           description,
           category,
           imageUrl,
           variations: {
-            create: variations.map((v: any) => ({
+            create: variations.map((v: { name: string; basePrice: number; includedComplements: number; includedFruits: number; }) => ({
               name: v.name,
               basePrice: v.basePrice,
               includedComplements: v.includedComplements,
@@ -69,11 +71,12 @@ export async function PUT(req: Request, { params }: { params: { productId: strin
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: { productId: string } }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ productId: string }> }) {
   try {
+    const { productId } = await params;
     await prisma.product.delete({
       where: {
-        id: params.productId,
+        id: productId,
       },
     });
 

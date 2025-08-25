@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useCart } from '@/context/CartContext';
 import { useRouter } from 'next/navigation';
 import { Trash2, Info } from 'lucide-react';
+import { comerceData } from '@/utils/comerceData';
 
 interface Address {
   zipCode: string;
@@ -65,7 +66,8 @@ export default function CheckoutPage() {
         state: data.uf,
       }));
       setError(null);
-    } catch (err) {
+    } catch (error) {
+      console.error(error);
       setError('Falha ao buscar o CEP.');
     }
   };
@@ -126,15 +128,19 @@ export default function CheckoutPage() {
       message += `\n*Total (produtos):* R$ ${totalPrice.toFixed(2)}`;
       message += `\n*Taxa de entrega a ser informada.*`;
 
-      const phone = '5511999999999'; // Replace with actual number
+      const phone = comerceData.whatsapp; // Replace with actual number
       const encodedMessage = encodeURIComponent(message);
       window.open(`https://wa.me/${phone}?text=${encodedMessage}`, '_blank');
 
       clearCart();
       router.push('/');
 
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+       if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Ocorreu um erro inesperado.');
+      }
     } finally {
       setIsLoading(false);
     }

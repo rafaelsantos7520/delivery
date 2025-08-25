@@ -24,13 +24,12 @@ export default function LoginPage() {
       });
 
       if (response.ok) {
-        // Redirect to admin dashboard
         window.location.href = '/admin';
       } else {
         const data = await response.json();
         setError(data.message || 'Login failed');
       }
-    } catch (error) {
+    } catch {
       setError('An unexpected error occurred');
     }
   };

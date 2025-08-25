@@ -1,4 +1,3 @@
-'use client';
 
 import { Product } from '@/types';
 import { ProductVariation, ComplementType } from '@prisma/client';
@@ -22,10 +21,10 @@ interface ProductCustomizationModalProps {
 }
 
 export function ProductCustomizationModal({ product, isOpen, onOpenChange }: ProductCustomizationModalProps) {
+  const { addToCart } = useCart();
   const [selectedVariation, setSelectedVariation] = useState<ProductVariation | null>(null);
   const [complementSelections, setComplementSelections] = useState<ComplementSelection[]>([]);
   const [totalPrice, setTotalPrice] = useState(0);
-  const { addToCart } = useCart();
 
   useEffect(() => {
     if (product) {
@@ -47,24 +46,12 @@ export function ProductCustomizationModal({ product, isOpen, onOpenChange }: Pro
     }
   }, [selectedVariation, complementSelections]);
 
-  const handleAddToCart = () => {
-    if (!product || !selectedVariation) return;
-
-    addToCart({
-      product,
-      selectedVariation,
-      complementSelections,
-      totalPrice,
-    });
-    onOpenChange(false);
-  };
-
   const toggleComplement = (complementId: string, name: string, type: ComplementType, unitPrice: number) => {
     setComplementSelections(prev => {
       const existing = prev.find(c => c.complementId === complementId);
       if (existing) {
-        return prev.map(c => 
-          c.complementId === complementId 
+        return prev.map(c =>
+          c.complementId === complementId
             ? { ...c, isSelected: !c.isSelected }
             : c
         );
@@ -79,8 +66,8 @@ export function ProductCustomizationModal({ product, isOpen, onOpenChange }: Pro
       const existing = prev.find(c => c.complementId === complementId);
       if (existing) {
         const newExtraQuantity = Math.max(0, existing.extraQuantity + change);
-        return prev.map(c => 
-          c.complementId === complementId 
+        return prev.map(c =>
+          c.complementId === complementId
             ? { ...c, extraQuantity: newExtraQuantity }
             : c
         );
@@ -93,17 +80,28 @@ export function ProductCustomizationModal({ product, isOpen, onOpenChange }: Pro
 
   const getComplementSelection = (complementId: string) => {
     const complement = complementSelections.find(c => c.complementId === complementId);
-    return complement || { complementId, name: '', type: ComplementType.ACOMPANHAMENTO, isSelected: false, extraQuantity: 0, unitPrice: 0 };
+    return complement || { complementId, name: '', type: 'acompanhamento', isSelected: false, extraQuantity: 0, unitPrice: 0 };
+  };
+
+  const handleAddToCart = () => {
+    if (!product || !selectedVariation) return;
+
+    const cartItem = {
+      product,
+      selectedVariation,
+      complementSelections,
+      totalPrice,
+    };
+
+    addToCart(cartItem);
+    onOpenChange(false);
   };
 
   if (!product || !isOpen) {
     return null;
   }
 
-  const includedComplements = product.complements.filter(pc => pc.complement.included);
-  const extraComplements = product.complements; 
-
-  const includedComplementsByType = includedComplements.reduce((acc, pc) => {
+  const complementsByType = product.complements.reduce((acc, pc) => {
     const type = pc.complement.type;
     if (!acc[type]) {
       acc[type] = [];
@@ -111,27 +109,9 @@ export function ProductCustomizationModal({ product, isOpen, onOpenChange }: Pro
     acc[type].push(pc.complement);
     return acc;
   }, {} as Record<string, typeof product.complements[0]['complement'][]>);
-
-  const extraComplementsByType = extraComplements.reduce((acc, pc) => {
-    const type = pc.complement.type;
-    if (!acc[type]) {
-      acc[type] = [];
-    }
-    acc[type].push(pc.complement);
-    return acc;
-  }, {} as Record<string, typeof product.complements[0]['complement'][]>);
-
-  const typeNames = {
-    [ComplementType.ACOMPANHAMENTO]: 'Acompanhamentos',
-    [ComplementType.FRUTA]: 'Frutas',
-    [ComplementType.COBERTURA]: 'Coberturas'
-  };
-
-  const selectedIncludedFruits = complementSelections.filter(c => c.type === ComplementType.FRUTA && c.isSelected).length;
-  const selectedIncludedAcompanhamentos = complementSelections.filter(c => c.type === ComplementType.ACOMPANHAMENTO && c.isSelected).length;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
@@ -139,7 +119,7 @@ export function ProductCustomizationModal({ product, isOpen, onOpenChange }: Pro
               <h2 className="text-2xl font-bold text-purple-800">{product.name}</h2>
               <p className="text-gray-600">{product.description}</p>
             </div>
-            <button 
+            <button
               onClick={() => onOpenChange(false)}
               className="text-gray-500 hover:text-gray-700 text-2xl"
             >
@@ -147,6 +127,7 @@ export function ProductCustomizationModal({ product, isOpen, onOpenChange }: Pro
             </button>
           </div>
 
+          {/* Seleção de Tamanho */}
           <div className="mb-8">
             <h3 className="text-lg font-semibold mb-4 text-purple-700">Escolha o tamanho:</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -173,38 +154,40 @@ export function ProductCustomizationModal({ product, isOpen, onOpenChange }: Pro
             </div>
           </div>
 
-          {selectedVariation && (
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold mb-4 text-purple-700">
-                Acompanhamentos Inclusos
-              </h3>
-              {Object.entries(includedComplementsByType).map(([type, complements]) => {
-                const isFruit = type === ComplementType.FRUTA;
-                const limit = isFruit ? selectedVariation.includedFruits : selectedVariation.includedComplements;
-                const selectedCount = isFruit ? selectedIncludedFruits : selectedIncludedAcompanhamentos;
+          {/* Lista de Complementos */}
+          {selectedVariation && Object.entries(complementsByType).map(([type, complements]) => {
+            const typeNames = {
+              'acompanhamento': 'Acompanhamentos',
+              'fruta': 'Frutas',
+              'cobertura': 'Coberturas'
+            };
+            const includedCount = type === 'fruta' ? selectedVariation.includedFruits : selectedVariation.includedComplements;
+            const totalSelected = complementSelections.filter(c => c.type === type && c.isSelected).length;
 
-                if (limit === 0) return null;
+            return (
+              <div key={type} className="mb-6">
+                <h3 className="text-lg font-semibold mb-4 text-blue-700">
+                  {typeNames[type as keyof typeof typeNames] || type}
+                  {type !== 'cobertura' && 
+                    <span className="text-sm font-normal text-gray-600 ml-2">
+                      ({totalSelected}/{includedCount} selecionados)
+                    </span>
+                  }
+                </h3>
+                {totalSelected >= includedCount && type !== 'cobertura' && (
+                  <div className="mb-3 p-2 bg-yellow-100 border border-yellow-300 rounded text-sm text-yellow-800">
+                    Você já selecionou o máximo de {includedCount} complementos grátis para este tamanho.
+                  </div>
+                )}
+                <div className="space-y-2">
+                  {complements.map(complement => {
+                    const selection = getComplementSelection(complement.id);
+                    const isDisabled = !selection.isSelected && totalSelected >= includedCount && type !== 'cobertura';
 
-                return (
-                  <div key={type} className="mb-4">
-                    <h4 className="text-md font-semibold mb-2 text-blue-700">
-                      {typeNames[type as ComplementType] || type}
-                      <span className="text-sm font-normal text-gray-600 ml-2">
-                        ({selectedCount}/{limit} selecionados)
-                      </span>
-                    </h4>
-                    {selectedCount >= limit && (
-                      <div className="mb-3 p-2 bg-yellow-100 border border-yellow-300 rounded text-sm text-yellow-800">
-                        Você já selecionou o máximo de {limit} {typeNames[type as ComplementType]?.toLowerCase() || type} grátis para este tamanho.
-                      </div>
-                    )}
-                    <div className="space-y-2">
-                      {complements.map(complement => {
-                        const selection = getComplementSelection(complement.id);
-                        const isDisabled = !selection.isSelected && selectedCount >= limit;
-
-                        return (
-                          <div key={complement.id} className="p-3 bg-gray-50 rounded-lg flex items-center gap-3">
+                    return (
+                      <div key={complement.id} className="p-3 bg-gray-50 rounded-lg">
+                        {complement.included ? (
+                          <div className="flex items-center gap-3">
                             <input
                               type="checkbox"
                               checked={selection.isSelected}
@@ -214,30 +197,7 @@ export function ProductCustomizationModal({ product, isOpen, onOpenChange }: Pro
                             />
                             <span className="font-medium">{complement.name}</span>
                           </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {selectedVariation && (
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold mb-4 text-purple-700">
-                Turbine seu Açaí (Extras)
-              </h3>
-              {Object.entries(extraComplementsByType).map(([type, complements]) => (
-                <div key={type} className="mb-4">
-                  <h4 className="text-md font-semibold mb-2 text-blue-700">
-                    {typeNames[type as ComplementType] || type}
-                  </h4>
-                  <div className="space-y-2">
-                    {complements.map(complement => {
-                      const selection = getComplementSelection(complement.id);
-                      return (
-                        <div key={complement.id} className="p-3 bg-gray-50 rounded-lg">
+                        ) : (
                           <div className="flex items-center justify-between">
                             <span className="font-medium">{complement.name}</span>
                             <div className="flex items-center gap-2">
@@ -258,24 +218,25 @@ export function ProductCustomizationModal({ product, isOpen, onOpenChange }: Pro
                               </button>
                             </div>
                           </div>
-                          {selection.extraQuantity > 0 && (
-                            <div className="text-sm text-blue-600 text-right mt-1">
-                              Subtotal: R$ {(selection.extraQuantity * complement.extraPrice).toFixed(2)}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
+                        )}
+                        {selection.extraQuantity > 0 && (
+                          <div className="text-sm text-blue-600 text-right mt-1">
+                            Subtotal: R$ {(selection.extraQuantity * complement.extraPrice).toFixed(2)}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-              ))}
-            </div>
-          )}
+              </div>
+            );
+          })}
 
+          {/* Rodapé */}
           <div className="border-t pt-6 mt-8">
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
               <div className="text-center sm:text-left">
-                <p className="text-sm text-gray-600">Total do item</p>
+                <p className="text-sm text-gray-600">Total do pedido</p>
                 <p className="text-3xl font-bold text-purple-600">R$ {totalPrice.toFixed(2)}</p>
               </div>
               <button

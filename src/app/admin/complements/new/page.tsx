@@ -36,7 +36,7 @@ export default function NewComplementPage() {
         const data = await response.json();
         setError(data.message || 'Failed to create complement');
       }
-    } catch (error) {
+    } catch {
       setError('An unexpected error occurred');
     }
   };

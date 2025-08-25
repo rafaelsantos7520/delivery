@@ -2,13 +2,12 @@
 
 import { ProductList } from "@/components/ProductList";
 import { Button } from "@/components/ui/button";
-import { Header } from "@/components/Header";
 import { Phone, Star, Zap, ThumbsUp, Heart, ShoppingCart } from "lucide-react";
+import { comerceData } from "@/utils/comerceData";
 
 export default function Home() {
   return (
     <div className="bg-gray-50">
-      <Header />
       <main>
         {/* Hero Section */}
         <section className="bg-gradient-to-br from-purple-900 via-purple-800 to-purple-700 text-white pt-20 pb-28">
@@ -36,7 +35,7 @@ export default function Home() {
                   size="lg" 
                   variant="outline" 
                   className="border-white text-white hover:bg-white hover:text-purple-900 px-8 py-3 shadow-lg transform hover:scale-105 transition-transform"
-                  onClick={() => window.open('https://wa.me/5598984267957', '_blank')}
+                  onClick={() => window.open(`https://wa.me/${comerceData.whatsapp}`, '_blank')}
                 >
                   <Phone className="mr-2 h-5 w-5" />
                   Fazer Pedido
@@ -102,7 +101,7 @@ export default function Home() {
                                 <div className="flex text-yellow-400"> <Star size={16}/> <Star size={16}/> <Star size={16}/> <Star size={16}/> <Star size={16}/> </div>
                             </div>
                         </div>
-                        <p className="text-gray-600 italic">"O melhor açaí que já comi! A entrega foi super rápida e o açaí veio perfeito, super cremoso e com os melhores acompanhamentos. Virei cliente fiel!"</p>
+                        <p className="text-gray-600 italic">“O melhor açaí que já comi! A entrega foi super rápida e o açaí veio perfeito, super cremoso e com os melhores acompanhamentos. Virei cliente fiel!”</p>
                     </div>
                     <div className="bg-white p-8 rounded-lg shadow-lg">
                         <div className="flex items-center mb-4">
@@ -112,7 +111,7 @@ export default function Home() {
                                 <div className="flex text-yellow-400"> <Star size={16}/> <Star size={16}/> <Star size={16}/> <Star size={16}/> <Star size={16}/> </div>
                             </div>
                         </div>
-                        <p className="text-gray-600 italic">"Atendimento nota 10 e produtos de qualidade. A variedade de complementos é incrível, dá pra montar o açaí do jeito que eu gosto. Recomendo demais!"</p>
+                        <p className="text-gray-600 italic">“Atendimento nota 10 e produtos de qualidade. A variedade de complementos é incrível, dá pra montar o açaí do jeito que eu gosto. Recomendo demais!”</p>
                     </div>
                     <div className="bg-white p-8 rounded-lg shadow-lg">
                         <div className="flex items-center mb-4">
@@ -122,7 +121,7 @@ export default function Home() {
                                 <div className="flex text-yellow-400"> <Star size={16}/> <Star size={16}/> <Star size={16}/> <Star size={16}/> <Star size={16}/> </div>
                             </div>
                         </div>
-                        <p className="text-gray-600 italic">"Simplesmente maravilhoso! O açaí é delicioso e o sistema de pedidos pelo site é muito prático. Facilita muito a vida na hora da fome. Parabéns!"</p>
+                        <p className="text-gray-600 italic">“Simplesmente maravilhoso! O açaí é delicioso e o sistema de pedidos pelo site é muito prático. Facilita muito a vida na hora da fome. Parabéns!”</p>
                     </div>
                 </div>
             </div>
@@ -136,7 +135,7 @@ export default function Home() {
             
             <div className="flex justify-center space-x-6 mb-6">
               <a 
-                href="https://wa.me/5598984267957" 
+                href={`https://wa.me/${comerceData.whatsapp}`} 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="flex items-center space-x-2 text-purple-200 hover:text-white transition-colors"
@@ -145,7 +144,7 @@ export default function Home() {
                 <span>(98) 98426-7957</span>
               </a>
               <a 
-                href="https://instagram.com/prime_acaiteria1" 
+                href={comerceData.instagram} 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="flex items-center space-x-2 text-purple-200 hover:text-white transition-colors"

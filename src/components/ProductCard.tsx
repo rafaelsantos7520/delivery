@@ -70,37 +70,37 @@ export function ProductCard({ product, onOpenModal }: ProductCardProps) {
           </div>
         </CardHeader>
         
-        <CardContent className="px-6 pb-4 flex-1 flex flex-col">
-           <div className="relative aspect-square mb-4 overflow-hidden rounded-xl">
-             <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent z-10" />
-             <Image
-               src={product.imageUrl || '/acai.jpg'}
-               alt={product.name}
-               fill
-               className="object-cover group-hover:scale-110 transition-transform duration-500"
-             />
-             <div className="absolute top-3 right-3 z-20">
-               <Badge className="bg-yellow-500 text-yellow-900 font-bold shadow-lg">
-                 ⭐ Popular
-               </Badge>
-             </div>
-           </div>
-           
-           <div className="space-y-2 flex-1">
-             <div className="flex items-center justify-between">
-               <span className="text-sm font-medium text-gray-600">Tamanhos disponíveis:</span>
-               <span className="text-sm text-purple-600 font-medium">{product.variations.length} opções</span>
-             </div>
-             
-             <div className="flex flex-wrap gap-1">
-               {product.variations.map((variation, index) => (
-                 <Badge key={index} variant="outline" className="text-xs">
-                   {variation.name}
-                 </Badge>
-               ))}
-             </div>
-           </div>
-         </CardContent>
+        <CardContent className="px-6 pb-4">
+          <div className="relative aspect-square mb-4 overflow-hidden rounded-xl">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent z-10" />
+            <Image
+              src={product.imageUrl || '/acai.jpg'}
+              alt={product.name}
+              fill
+              className="object-cover group-hover:scale-110 transition-transform duration-500"
+            />
+            <div className="absolute top-3 right-3 z-20">
+              <Badge className="bg-yellow-500 text-yellow-900 font-bold shadow-lg">
+                ⭐ Popular
+              </Badge>
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-gray-600">Tamanhos disponíveis:</span>
+              <span className="text-sm text-purple-600 font-medium">{product.variations.length} opções</span>
+            </div>
+            
+            <div className="flex flex-wrap gap-1">
+              {product.variations.map((variation, index) => (
+                <Badge key={index} variant="outline" className="text-xs">
+                  {variation.name}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        </CardContent>
         
         <CardFooter className="px-6 pb-6 pt-2">
           <div className="w-full space-y-3">

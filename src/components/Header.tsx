@@ -5,6 +5,7 @@ import { Button } from './ui/button';
 import { Phone, ShoppingCart } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { useState, useEffect } from 'react';
+import { comerceData } from '@/utils/comerceData';
 
 export function Header() {
   const { cartCount } = useCart();
@@ -34,10 +35,10 @@ export function Header() {
                     )}
                 </Button>
             </Link>
-            <Button className="hidden sm:flex bg-green-500 hover:bg-green-600">
+            <Link href={`https://api.whatsapp.com/send?phone=${comerceData.whatsapp}`} target="_blank" className="hidden sm:flex items-center px-4 py-2 rounded-md text-white bg-green-500 hover:bg-green-600 transition-colors">
                 <Phone className="mr-2 h-5 w-5" />
                 WhatsApp
-            </Button>
+            </Link>
         </div>
       </div>
     </header>

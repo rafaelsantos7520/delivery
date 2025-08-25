@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-export async function GET(req: Request, context: { params: { complementId: string } }) {
+export async function GET(req: Request, 
+  { params }: { params: Promise<{complementId: string}>}) 
+  {
   try {
-    const { complementId } = context.params;
+    const { complementId } = await params;
     const complement = await prisma.complement.findUnique({
       where: {
         id: complementId,
@@ -21,9 +23,11 @@ export async function GET(req: Request, context: { params: { complementId: strin
   }
 }
 
-export async function PUT(req: Request, context: { params: { complementId: string } }) {
+export async function PUT(req: Request, 
+  { params }: { params: Promise<{complementId: string}>}) 
+  {
   try {
-    const { complementId } = context.params;
+    const { complementId } = await params;
     const body = await req.json();
     const { name, type, extraPrice, included, imageUrl } = body;
 
@@ -51,9 +55,11 @@ export async function PUT(req: Request, context: { params: { complementId: strin
   }
 }
 
-export async function DELETE(req: Request, context: { params: { complementId: string } }) {
+export async function DELETE(req: Request, 
+  { params }: { params: Promise<{complementId: string}>}) 
+  {
   try {
-    const { complementId } = context.params;
+    const { complementId } = await params;
     await prisma.complement.delete({
       where: {
         id: complementId,

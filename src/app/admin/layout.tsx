@@ -11,6 +11,7 @@ function AdminPagesLayout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
+      console.log('Redirecting to login');
       router.push('/admin/login');
     }
   }, [isAuthenticated, loading, router]);
@@ -23,10 +24,9 @@ function AdminPagesLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // if (!isAuthenticated) {
-  //   console.log('Not authenticated, redirecting to login');
-  //   return null; // or a redirect, though the useEffect handles it
-  // }
+  if (!isAuthenticated) {
+    return children;
+  }
 
   return (
     <div className="flex min-h-screen bg-gray-100">

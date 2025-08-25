@@ -36,7 +36,7 @@ export default function EditProductPage() {
         } else {
           setError('Failed to fetch product');
         }
-      } catch (error) {
+      } catch {
         setError('An unexpected error occurred');
       }
     };
@@ -46,7 +46,7 @@ export default function EditProductPage() {
     }
   }, [productId]);
 
-  const handleVariationChange = (index: number, field: string, value: any) => {
+  const handleVariationChange = (index: number, field: string, value: string | number) => {
     const newVariations = [...variations];
     newVariations[index] = { ...newVariations[index], [field]: value };
     setVariations(newVariations);
@@ -78,7 +78,7 @@ export default function EditProductPage() {
         const data = await response.json();
         setError(data.message || 'Failed to update product');
       }
-    } catch (error) {
+    } catch {
       setError('An unexpected error occurred');
     }
   };

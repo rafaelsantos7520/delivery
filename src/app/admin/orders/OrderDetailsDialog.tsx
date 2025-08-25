@@ -21,6 +21,17 @@ interface OrderDetailsDialogProps {
   children: React.ReactNode;
 }
 
+type Address = {
+  street: string;
+  number: string;
+  complement?: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  reference?: string;
+};
+
 export function OrderDetailsDialog({ order, children }: OrderDetailsDialogProps) {
 
   const getStatusVariant = (status: string) => {
@@ -34,7 +45,7 @@ export function OrderDetailsDialog({ order, children }: OrderDetailsDialogProps)
     }
   }
 
-  const address = order.customer.address as any; // Cast to any to access properties
+  const address = order.customer.address as Address | null;
 
   return (
     <Dialog>

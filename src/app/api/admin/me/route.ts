@@ -4,7 +4,7 @@ import prisma from '@/lib/prisma';
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
     console.log('Checking admin me...');
     const cookieStore = await cookies();
@@ -28,7 +28,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json(admin);
 
-  } catch (error) {
+  } catch {
     return new NextResponse(JSON.stringify({ message: 'Token inválido ou expirado' }), { status: 401 });
   }
 }

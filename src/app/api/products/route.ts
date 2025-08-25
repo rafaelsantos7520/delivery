@@ -38,7 +38,7 @@ export async function POST(req: Request) {
         category,
         imageUrl,
         variations: {
-          create: variations.map((v: any) => ({
+          create: variations.map((v: { name: string; basePrice: number; includedComplements: number; includedFruits: number; }) => ({
             name: v.name,
             basePrice: v.basePrice,
             includedComplements: v.includedComplements,

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Loading } from "@/components/ui/loading";
 
 export default function ComplementsPage() {
   const [complements, setComplements] = useState<Complement[]>([]);
@@ -48,7 +49,7 @@ export default function ComplementsPage() {
   };
 
   if (loading) {
-    return <p>Carregando complementos...</p>;
+    return <Loading />;
   }
 
   return (

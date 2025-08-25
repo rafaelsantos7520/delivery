@@ -3,9 +3,9 @@
 import { Order, Customer, OrderItem, Product, ProductVariation, OrderItemComplement, Complement } from "@prisma/client";
 import { useEffect, useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { OrderDetailsDialog } from "./OrderDetailsDialog";
+import { Loading } from "@/components/ui/loading";
 
 // Extend the Order type to include the relations
 type OrderItemWithRelations = OrderItem & {
@@ -40,24 +40,6 @@ export default function OrdersPage() {
     fetchOrders();
   }, []);
 
-  const handleStatusChange = async (orderId: string, status: string) => {
-    try {
-      const response = await fetch(`/api/orders/${orderId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status }),
-      });
-
-      if (response.ok) {
-        fetchOrders(); // Refresh the list
-      } else {
-        console.error("Failed to update order status");
-      }
-    } catch (error) {
-      console.error("An unexpected error occurred", error);
-    }
-  };
-
   const getStatusVariant = (status: string) => {
     switch (status) {
       case 'pending': return 'default';
@@ -70,7 +52,7 @@ export default function OrdersPage() {
   }
 
   if (loading) {
-    return <p>Carregando pedidos...</p>;
+    return <Loading />;
   }
 
   return (

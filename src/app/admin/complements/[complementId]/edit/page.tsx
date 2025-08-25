@@ -37,7 +37,7 @@ export default function EditComplementPage() {
         } else {
           setError('Failed to fetch complement');
         }
-      } catch (error) {
+      } catch {
         setError('An unexpected error occurred');
       }
     };
@@ -64,7 +64,7 @@ export default function EditComplementPage() {
         const data = await response.json();
         setError(data.message || 'Failed to update complement');
       }
-    } catch (error) {
+    } catch {
       setError('An unexpected error occurred');
     }
   };
