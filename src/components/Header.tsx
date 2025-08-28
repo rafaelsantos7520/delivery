@@ -22,16 +22,43 @@ export function Header() {
           Açaí Prime
         </Link>
         <nav className="hidden md:flex items-center gap-6 text-lg">
-          <Link href="#cardapio" className="text-gray-600 hover:text-purple-600 transition-colors">Cardápio</Link>
-          <Link href="#como-pedir" className="text-gray-600 hover:text-purple-600 transition-colors">Como Pedir</Link>
-          <Link href="#depoimentos" className="text-gray-600 hover:text-purple-600 transition-colors">Depoimentos</Link>
+          <a 
+            href="#cardapio" 
+            className="text-gray-600 hover:text-purple-600 transition-colors cursor-pointer"
+            onClick={(e) => {
+              e.preventDefault();
+              document.getElementById('cardapio')?.scrollIntoView({ behavior: 'smooth' });
+            }}
+          >
+            Cardápio
+          </a>
+          <a 
+            href="#como-pedir" 
+            className="text-gray-600 hover:text-purple-600 transition-colors cursor-pointer"
+            onClick={(e) => {
+              e.preventDefault();
+              document.getElementById('como-pedir')?.scrollIntoView({ behavior: 'smooth' });
+            }}
+          >
+            Como Pedir
+          </a>
+          <a 
+            href="#depoimentos" 
+            className="text-gray-600 hover:text-purple-600 transition-colors cursor-pointer"
+            onClick={(e) => {
+              e.preventDefault();
+              document.getElementById('depoimentos')?.scrollIntoView({ behavior: 'smooth' });
+            }}
+          >
+            Depoimentos
+          </a>
         </nav>
         <div className="flex items-center gap-4">
             <Link href="/checkout">
-                <Button variant="ghost" className="relative">
-                    <ShoppingCart className="h-6 w-6 text-purple-700" />
+                <Button variant="ghost" className="relative p-3 hover:bg-purple-100 transition-all duration-200 transform hover:scale-105 rounded-xl">
+                    <ShoppingCart className="h-8 w-8 text-purple-700 hover:text-purple-800" />
                     {hasMounted && cartCount > 0 && (
-                        <span className="absolute -top-1 -right-1 bg-yellow-500 text-purple-900 text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">{cartCount}</span>
+                        <span className="absolute -top-2 -right-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-sm font-bold rounded-full h-7 w-7 flex items-center justify-center shadow-lg animate-pulse">{cartCount}</span>
                     )}
                 </Button>
             </Link>

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useCart } from '@/context/CartContext';
 import { useRouter } from 'next/navigation';
-import { Trash2, Info } from 'lucide-react';
+import { Trash2, Info, ArrowLeft } from 'lucide-react';
 import { comerceData } from '@/utils/comerceData';
 
 interface Address {
@@ -161,7 +161,15 @@ export default function CheckoutPage() {
 
   return (
     <div className="container mx-auto px-4 py-12">
-      <h1 className="text-4xl font-bold text-purple-800 mb-8">Checkout</h1>
+      <div className="flex items-center justify-between mb-8">
+        <button
+          onClick={() => router.push('/')}
+          className="flex items-center gap-2 px-4 py-2 text-purple-700 hover:text-purple-800 hover:bg-purple-50 rounded-lg transition-all duration-200 font-medium"
+        >
+          <ArrowLeft size={20} />
+          Voltar ao Início
+        </button>
+      </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
         <div className="lg:col-span-2">
           <h2 className="text-2xl font-semibold text-purple-700 mb-6">Resumo do Pedido</h2>

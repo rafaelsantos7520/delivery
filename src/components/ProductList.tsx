@@ -3,8 +3,8 @@
 
 import { Product } from "@/types";
 import { useEffect, useState } from "react";
+import { useRouter } from 'next/navigation';
 import { ProductCard } from "./ProductCard";
-import { ProductCustomizationModal } from "./ProductCustomizationModal";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Filter, Search } from "lucide-react";
@@ -12,23 +12,67 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 export function ProductList() {
+  const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  // Cache configuration - Estratégia de cache para otimizar performance
+  // Os produtos são armazenados no localStorage por 5 minutos
+  // Isso reduz requisições desnecessárias à API quando o componente é re-renderizado
+  const CACHE_KEY = 'acai_products_cache';
+  const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos em milliseconds
+
+  // Função para limpar cache (útil para atualizações)
+  const clearCache = () => {
+    localStorage.removeItem(CACHE_KEY);
+  };
+
+  // Função para verificar se o cache é válido
+  const isCacheValid = (timestamp: number) => {
+    return Date.now() - timestamp < CACHE_DURATION;
+  };
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
+        // Verificar se existe cache válido
+        const cachedData = localStorage.getItem(CACHE_KEY);
+        if (cachedData) {
+          const { data, timestamp } = JSON.parse(cachedData);
+          
+          // Se o cache ainda é válido
+          if (isCacheValid(timestamp)) {
+            setProducts(data);
+            setFilteredProducts(data);
+            setLoading(false);
+            return;
+          }
+        }
+
+        // Buscar dados da API se não há cache ou cache expirado
         const response = await fetch('/api/products');
         const data = await response.json();
+        
+        // Salvar no cache com timestamp
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
+          data,
+          timestamp: Date.now()
+        }));
+        
         setProducts(data);
         setFilteredProducts(data);
       } catch (error) {
         console.error("Failed to fetch products", error);
+        // Em caso de erro, tentar usar cache mesmo que expirado
+        const cachedData = localStorage.getItem(CACHE_KEY);
+        if (cachedData) {
+          const { data } = JSON.parse(cachedData);
+          setProducts(data);
+          setFilteredProducts(data);
+        }
       } finally {
         setLoading(false);
       }
@@ -54,9 +98,8 @@ export function ProductList() {
     setFilteredProducts(filtered);
   }, [products, searchTerm, selectedCategory]);
 
-  const handleOpenModal = (product: Product) => {
-    setSelectedProduct(product);
-    setIsModalOpen(true);
+  const handleProductClick = (product: Product) => {
+    router.push(`/products/${product.id}/customize`);
   };
 
   const categories = [...new Set(products.map(p => p.category))];
@@ -93,26 +136,32 @@ export function ProductList() {
   return (
     <div className="space-y-8">
       {/* Filtros e Busca */}
-      <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-        <div className="flex flex-col lg:flex-row gap-4 items-center">
-          <div className="relative flex-1 max-w-md">
+      <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 border border-gray-100">
+        {/* Campo de Busca */}
+        <div className="mb-4">
+          <div className="relative w-full max-w-md mx-auto sm:mx-0">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
             <Input
               placeholder="Buscar produtos..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 border-gray-200 focus:border-purple-500 focus:ring-purple-500 rounded-xl"
+              className="pl-10 border-gray-200 focus:border-purple-500 focus:ring-purple-500 rounded-xl w-full"
             />
           </div>
-          
-          <div className="flex items-center gap-2">
-            <Filter className="h-5 w-5 text-gray-500" />
+        </div>
+        
+        {/* Filtros de Categoria */}
+        <div className="mb-4">
+          <div className="flex items-center gap-2 mb-3 justify-center sm:justify-start">
+            <Filter className="h-4 w-4 text-gray-500" />
             <span className="text-sm font-medium text-gray-600">Categoria:</span>
+          </div>
+          <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
             <Button
               variant={selectedCategory === null ? "default" : "outline"}
               size="sm"
               onClick={() => setSelectedCategory(null)}
-              className="rounded-full"
+              className="rounded-full text-xs sm:text-sm px-3 py-1.5"
             >
               Todos
             </Button>
@@ -122,7 +171,7 @@ export function ProductList() {
                 variant={selectedCategory === category ? "default" : "outline"}
                 size="sm"
                 onClick={() => setSelectedCategory(category)}
-                className="rounded-full"
+                className="rounded-full text-xs sm:text-sm px-3 py-1.5"
               >
                 {category === 'acai' ? '🍇 Açaí' : '🥤 Batidas'}
               </Button>
@@ -130,14 +179,13 @@ export function ProductList() {
           </div>
         </div>
         
-        <div className="mt-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
-              {filteredProducts.length} {filteredProducts.length === 1 ? 'produto encontrado' : 'produtos encontrados'}
-            </Badge>
-          </div>
+        {/* Contador e Mensagem */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
+          <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-xs sm:text-sm">
+            {filteredProducts.length} {filteredProducts.length === 1 ? 'produto encontrado' : 'produtos encontrados'}
+          </Badge>
           
-          <div className="text-sm text-gray-500">
+          <div className="text-xs sm:text-sm text-gray-500">
             💜 Feito com amor para você!
           </div>
         </div>
@@ -145,30 +193,24 @@ export function ProductList() {
 
       {/* Lista de Produtos */}
       {filteredProducts.length === 0 ? (
-        <div className="text-center py-16">
-          <div className="text-6xl mb-4">🔍</div>
-          <h3 className="text-xl font-semibold text-gray-700 mb-2">Nenhum produto encontrado</h3>
-          <p className="text-gray-500">Tente ajustar os filtros ou termo de busca</p>
+        <div className="text-center py-12 sm:py-16 px-4">
+          <div className="text-4xl sm:text-6xl mb-4">🔍</div>
+          <h3 className="text-lg sm:text-xl font-semibold text-gray-700 mb-2">Nenhum produto encontrado</h3>
+          <p className="text-sm sm:text-base text-gray-500">Tente ajustar os filtros ou termo de busca</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 px-2 sm:px-0">
           {filteredProducts.map((product, index) => (
             <div 
               key={product.id} 
-              className="animate-fade-in-up"
+              className="animate-fade-in-up w-full"
               style={{ animationDelay: `${index * 100}ms` }}
             >
-              <ProductCard product={product} onOpenModal={handleOpenModal} />
+              <ProductCard product={product} onProductClick={handleProductClick} />
             </div>
           ))}
         </div>
       )}
-      
-      <ProductCustomizationModal
-        product={selectedProduct}
-        isOpen={isModalOpen}
-        onOpenChange={setIsModalOpen}
-      />
     </div>
   );
 }

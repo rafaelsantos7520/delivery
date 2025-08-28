@@ -10,43 +10,53 @@ export default function Home() {
     <div className="bg-gray-50">
       <main>
         {/* Hero Section */}
-        <section className="bg-gradient-to-br from-purple-900 via-purple-800 to-purple-700 text-white pt-20 pb-28">
-          <div className="container mx-auto px-4 text-center">
-            <div className="max-w-4xl mx-auto">
-              <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">
-                Prime Açaiteria
-              </h1>
-              <p className="text-xl md:text-2xl mb-4 text-purple-100">
-                Hoje é dia de Açaí
-              </p>
-              <p className="text-lg mb-8 text-purple-200 max-w-2xl mx-auto">
-                O melhor açaí da região com ingredientes frescos e sabores únicos. 
-                Venha experimentar nossa variedade de açaís, batidas e complementos deliciosos!
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button 
-                  size="lg" 
-                  className="bg-yellow-500 hover:bg-yellow-600 text-purple-900 font-semibold px-8 py-3 shadow-lg transform hover:scale-105 transition-transform"
-                  onClick={() => document.getElementById('cardapio')?.scrollIntoView({ behavior: 'smooth' })}
-                >
-                  Ver Cardápio
-                </Button>
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                  className="border-white text-white hover:bg-white hover:text-purple-900 px-8 py-3 shadow-lg transform hover:scale-105 transition-transform"
-                  onClick={() => window.open(`https://wa.me/${comerceData.whatsapp}`, '_blank')}
-                >
-                  <Phone className="mr-2 h-5 w-5" />
-                  Fazer Pedido
-                </Button>
-              </div>
+        <section 
+          className="relative h-[70vh] flex items-center justify-center text-center text-white"
+          style={{
+            backgroundImage: 'url("/fundoacai.jpg")',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat'
+          }}
+        >
+          {/* Overlay escuro para deixar a imagem mais opaca como fundo */}
+          <div className="absolute inset-0 bg-black/80 z-10"></div>
+          
+          <div className="relative z-20 container mx-auto px-4">
+            <h1 className="text-4xl md:text-6xl font-bold mb-3 text-white drop-shadow-2xl">
+              Prime Açaiteria
+            </h1>
+            <p className="text-lg md:text-xl mb-2 text-white drop-shadow-lg">
+              Hoje é dia de Açaí
+            </p>
+            <p className="text-base md:text-lg mb-6 max-w-xl mx-auto text-white drop-shadow-lg">
+              O melhor açaí da região com ingredientes frescos e sabores únicos.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <a 
+                href="#cardapio" 
+                className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2.5 text-base font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById('cardapio')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+              >
+                Ver Cardápio
+              </a>
+              <a 
+                href={`https://wa.me/${comerceData.whatsapp}?text=Olá! Gostaria de fazer um pedido.`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="border-2 border-white text-white hover:bg-white hover:text-purple-600 px-6 py-2.5 text-base font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+              >
+                Fazer Pedido
+              </a>
             </div>
           </div>
         </section>
 
         {/* Cardápio */}
-        <section id="cardapio" className="py-16">
+        <section id="cardapio" className="py-16 pt-24">
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
               <h2 className="text-4xl font-bold mb-4 text-gray-800">Nosso Cardápio</h2>
@@ -59,7 +69,7 @@ export default function Home() {
         </section>
 
         {/* Como Pedir */}
-        <section id="como-pedir" className="py-16 bg-white">
+        <section id="como-pedir" className="py-16 pt-24 bg-white">
             <div className="container mx-auto px-4">
                 <div className="text-center mb-12">
                     <h2 className="text-4xl font-bold mb-4 text-gray-800">Como Pedir</h2>
@@ -86,7 +96,7 @@ export default function Home() {
         </section>
 
         {/* Depoimentos */}
-        <section id="depoimentos" className="py-16">
+        <section id="depoimentos" className="py-16 pt-24">
             <div className="container mx-auto px-4">
                 <div className="text-center mb-12">
                     <h2 className="text-4xl font-bold mb-4 text-gray-800">O que nossos clientes dizem</h2>
