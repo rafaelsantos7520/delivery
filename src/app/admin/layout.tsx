@@ -11,7 +11,6 @@ function AdminPagesLayout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
-      console.log('Redirecting to login');
       router.push('/admin/login');
     }
   }, [isAuthenticated, loading, router]);

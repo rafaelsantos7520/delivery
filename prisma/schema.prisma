@@ -8,17 +8,6 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-enum ComplementType {
-  ACOMPANHAMENTO
-  FRUTA
-  COBERTURA
-}
-
-enum OrderItemComplementType {
-  INCLUDED
-  EXTRA
-}
-
 model Admin {
   id           String   @id @default(uuid())
   name         String
@@ -34,24 +23,25 @@ model Customer {
   id        String   @id @default(uuid())
   name      String
   phone     String
-  address   Json?
   createdAt DateTime @default(now()) @map("created_at")
+  address   Json?
   orders    Order[]
 
   @@map("customers")
 }
 
 model Product {
-  id          String              @id @default(uuid())
-  name        String
-  description String?
-  category    String
-  imageUrl    String?             @map("image_url")
-  active      Boolean             @default(true)
-  createdAt   DateTime            @default(now()) @map("created_at")
-  orderItems  OrderItem[]
-  complements ProductComplement[]
-  variations  ProductVariation[]
+  id               String              @id @default(cuid())
+  name             String
+  description      String?
+  imageUrl         String?             @map("image_url")
+  active           Boolean             @default(true)
+  createdAt        DateTime            @default(now()) @map("created_at")
+  categoryId       String?             @map("category_id")
+  orderItems       OrderItem[]
+  complements      ProductComplement[]
+  variations       ProductVariation[]
+  categoryRelation Category?           @relation(fields: [categoryId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@map("products")
 }
@@ -64,6 +54,7 @@ model ProductVariation {
   includedComplements Int         @map("included_complements")
   includedFruits      Int         @map("included_fruits")
   createdAt           DateTime    @default(now()) @map("created_at")
+  includedCoverages   Int         @default(0) @map("included_coverages")
   orderItems          OrderItem[]
   product             Product     @relation(fields: [productId], references: [id])
 
@@ -73,12 +64,12 @@ model ProductVariation {
 model Complement {
   id                   String                @id @default(uuid())
   name                 String
-  type                 ComplementType
   extraPrice           Float                 @map("extra_price")
   included             Boolean               @default(true)
   imageUrl             String?               @map("image_url")
   active               Boolean               @default(true)
   createdAt            DateTime              @default(now()) @map("created_at")
+  type                 ComplementType
   orderItemComplements OrderItemComplement[]
   productComplements   ProductComplement[]
 
@@ -104,8 +95,8 @@ model Order {
   whatsappMessage String?     @map("whatsapp_message")
   total           Float       @default(0)
   createdAt       DateTime    @default(now()) @map("created_at")
-  customer        Customer    @relation(fields: [customerId], references: [id])
   items           OrderItem[]
+  customer        Customer    @relation(fields: [customerId], references: [id])
 
   @@map("orders")
 }
@@ -118,23 +109,45 @@ model OrderItem {
   note        String?
   finalPrice  Float                 @map("final_price")
   createdAt   DateTime              @default(now()) @map("created_at")
+  complements OrderItemComplement[]
   order       Order                 @relation(fields: [orderId], references: [id])
   product     Product               @relation(fields: [productId], references: [id])
   variation   ProductVariation?     @relation(fields: [variationId], references: [id])
-  complements OrderItemComplement[]
 
   @@map("order_items")
 }
 
 model OrderItemComplement {
-  id           String     @id @default(uuid())
-  orderItemId  String     @map("order_item_id")
-  complementId String     @map("complement_id")
-  type         OrderItemComplementType
-  quantity     Int        @default(1)
+  id           String                  @id @default(uuid())
+  orderItemId  String                  @map("order_item_id")
+  complementId String                  @map("complement_id")
   price        Float
-  complement   Complement @relation(fields: [complementId], references: [id])
-  orderItem    OrderItem  @relation(fields: [orderItemId], references: [id])
+  quantity     Int                     @default(1)
+  type         OrderItemComplementType
+  complement   Complement              @relation(fields: [complementId], references: [id])
+  orderItem    OrderItem               @relation(fields: [orderItemId], references: [id])
 
   @@map("order_item_complements")
+}
+
+model Category {
+  id          String    @id @default(dbgenerated("gen_random_uuid()"))
+  name        String    @unique @db.VarChar(255)
+  description String?
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt   DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  products    Product[]
+
+  @@map("categories")
+}
+
+enum ComplementType {
+  ACOMPANHAMENTO
+  FRUTA
+  COBERTURA
+}
+
+enum OrderItemComplementType {
+  INCLUDED
+  EXTRA
 }

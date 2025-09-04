@@ -1,7 +1,6 @@
 'use client';
 
 import { ProductList } from "@/components/ProductList";
-import { Button } from "@/components/ui/button";
 import { Phone, Star, Zap, ThumbsUp, Heart, ShoppingCart } from "lucide-react";
 import { comerceData } from "@/utils/comerceData";
 
@@ -96,7 +95,7 @@ export default function Home() {
         </section>
 
         {/* Depoimentos */}
-        <section id="depoimentos" className="py-16 pt-24">
+        <section id="depoimentos" className="py-16">
             <div className="container mx-auto px-4">
                 <div className="text-center mb-12">
                     <h2 className="text-4xl font-bold mb-4 text-gray-800">O que nossos clientes dizem</h2>

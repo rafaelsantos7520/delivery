@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { Plus, Minus, ShoppingCart, AlertTriangle, Loader2, CheckCircle, ArrowLeft } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { useRouter } from 'next/navigation';
+import { Product } from '@/types';
 
 // Tipos locais para a página
 interface ComplementSelection {
@@ -17,29 +18,10 @@ interface ComplementSelection {
   selectionOrder: number;
 }
 
-interface ProductWithDetails {
-  id: string;
-  name: string;
-  description: string | null;
-  category: string;
-  imageUrl: string | null;
-  active: boolean;
-  createdAt: Date;
-  variations: ProductVariation[];
-  complements: {
-    id: string;
-    active: boolean;
-    productId: string;
-    complementId: string;
-    complement: Complement;
-  }[];
-}
 
-interface ProductCustomizationClientProps {
-  product: ProductWithDetails;
-}
 
-export default function ProductCustomizationClient({ product }: ProductCustomizationClientProps) {
+
+export default function ProductCustomizationClient({ product }: { product: Product }) {
   const { addToCart } = useCart();
   const router = useRouter();
   const [selectedVariation, setSelectedVariation] = useState<ProductVariation | null>(null);
@@ -50,6 +32,7 @@ export default function ProductCustomizationClient({ product }: ProductCustomiza
   const [selectionCounter, setSelectionCounter] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
 
   useEffect(() => {
     const initialVariation = product.variations[0] || null;
@@ -62,7 +45,9 @@ export default function ProductCustomizationClient({ product }: ProductCustomiza
       const complementsTotal = complementSelections.reduce((acc, c) => {
         // Para complementos inclusos, apenas cobrar se exceder o limite gratuito
         if (c.isSelected || c.extraQuantity > 0) {
-          const includedCount = c.type === 'FRUTA' ? selectedVariation.includedFruits : selectedVariation.includedComplements;
+          const includedCount = c.type === 'FRUTA' ? selectedVariation.includedFruits : 
+                                c.type === 'COBERTURA' ? selectedVariation.includedCoverages : 
+                                c.type === 'ACOMPANHAMENTO' ? selectedVariation.includedComplements : 0;
           const selectedOfSameType = complementSelections.filter(sel => 
             sel.type === c.type && sel.isSelected
           );
@@ -101,7 +86,9 @@ export default function ProductCustomizationClient({ product }: ProductCustomiza
         );
       } else {
         // Verificar se este complemento será cobrado
-        const includedCount = type === 'FRUTA' ? selectedVariation?.includedFruits : selectedVariation?.includedComplements;
+        const includedCount = type === 'FRUTA' ? selectedVariation?.includedFruits : 
+                             type === 'COBERTURA' ? selectedVariation?.includedCoverages : 
+                             type === 'ACOMPANHAMENTO' ? selectedVariation?.includedComplements : 0;
         const selectedOfSameType = prev.filter(c => c.type === type && c.isSelected);
         
         if (selectedOfSameType.length >= (includedCount || 0)) {
@@ -148,12 +135,13 @@ export default function ProductCustomizationClient({ product }: ProductCustomiza
           id: product.id,
           name: product.name,
           description: product.description,
-          category: product.category,
+          categoryId: product.categoryId,
           imageUrl: product.imageUrl,
           active: product.active,
           createdAt: product.createdAt,
           variations: product.variations,
-          complements: product.complements
+          complements: product.complements,
+          categoryRelation: product.categoryRelation
         },
         selectedVariation,
         complementSelections,
@@ -221,7 +209,7 @@ export default function ProductCustomizationClient({ product }: ProductCustomiza
                   <div className="font-semibold text-sm sm:text-base">{variation.name}</div>
                   <div className="text-lg sm:text-xl font-bold text-purple-600">R$ {variation.basePrice.toFixed(2)}</div>
                   <div className="text-xs sm:text-sm text-gray-500">
-                    Inclui {variation.includedComplements} acompanhamentos + {variation.includedFruits} fruta(s) grátis
+                    Inclui {variation.includedComplements} acompanhamentos + {variation.includedFruits} fruta(s) + {variation.includedCoverages} cobertura(s) grátis
                   </div>
                 </button>
               ))}
@@ -235,21 +223,21 @@ export default function ProductCustomizationClient({ product }: ProductCustomiza
               'FRUTA': 'Frutas',
               'COBERTURA': 'Coberturas'
             };
-            const includedCount = type === 'FRUTA' ? selectedVariation.includedFruits : selectedVariation.includedComplements;
-            const totalSelected = complementSelections.filter(c => c.type === type && (c.isSelected || c.extraQuantity > 0)).length;
+            const includedCount = type === 'FRUTA' ? selectedVariation.includedFruits : 
+                                  type === 'COBERTURA' ? selectedVariation.includedCoverages : 
+                                  type === 'ACOMPANHAMENTO' ? selectedVariation.includedComplements : 0;
+
 
             return (
               <div key={type} className="mb-4 sm:mb-6">
                 <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-blue-700">
                   {typeNames[type] || type}
-                  {type !== 'COBERTURA' && 
-                    <span className="text-xs sm:text-sm font-normal text-gray-600 ml-2">
-                      ({includedCount} grátis inclusos)
-                    </span>
-                  }
+                  <span className="text-xs sm:text-sm font-normal text-gray-600 ml-2">
+                    ({includedCount} grátis inclusos)
+                  </span>
                 </h3>
                 <div className="space-y-2">
-                  {complements.map((complement, index) => {
+                  {complements.map((complement) => {
                     const selection = getComplementSelection(complement.id);
                     const selectedOfSameType = complementSelections.filter(c => 
                       c.type === type && c.isSelected
@@ -323,40 +311,40 @@ export default function ProductCustomizationClient({ product }: ProductCustomiza
       </main>
 
       {/* Rodapé Fixo */}
-          <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg">
-            <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
-              <div className="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-0">
-                <div className="text-center sm:text-left">
-                  <p className="text-xs sm:text-sm text-gray-600">Total</p>
-                  <p className="text-2xl sm:text-3xl font-bold text-purple-600">R$ {totalPrice.toFixed(2)}</p>
-                  {selectedVariation && (
-                    <p className="text-xs text-gray-500">
-                      Base: R$ {selectedVariation.basePrice.toFixed(2)} + Extras: R$ {(totalPrice - selectedVariation.basePrice).toFixed(2)}
-                    </p>
-                  )}
-                </div>
-                <button
-                  onClick={handleAddToCart}
-                  disabled={!selectedVariation || isLoading}
-                  className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white font-bold px-6 sm:px-8 py-3 sm:py-4 rounded-lg shadow-md hover:shadow-lg transition-transform duration-200 transform hover:scale-105 flex items-center gap-2 sm:gap-3 text-sm sm:text-base w-full sm:w-auto"
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 size={18} className="sm:w-5 sm:h-5 animate-spin" />
-                      <span className="hidden sm:inline">Adicionando...</span>
-                      <span className="sm:hidden">Adicionando</span>
-                    </>
-                  ) : (
-                    <>
-                      <ShoppingCart size={18} className="sm:w-5 sm:h-5" />
-                      <span className="hidden sm:inline">Adicionar ao Carrinho</span>
-                      <span className="sm:hidden">Adicionar</span>
-                    </>
-                  )}
-                </button>
-              </div>
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg">
+        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+          <div className="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-0">
+            <div className="text-center sm:text-left">
+              <p className="text-xs sm:text-sm text-gray-600">Total</p>
+              <p className="text-2xl sm:text-3xl font-bold text-purple-600">R$ {totalPrice.toFixed(2)}</p>
+              {selectedVariation && (
+                <p className="text-xs text-gray-500">
+                  Base: R$ {selectedVariation.basePrice.toFixed(2)} + Extras: R$ {(totalPrice - selectedVariation.basePrice).toFixed(2)}
+                </p>
+              )}
             </div>
+            <button
+              onClick={handleAddToCart}
+              disabled={!selectedVariation || isLoading}
+              className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white font-bold px-6 sm:px-8 py-3 sm:py-4 rounded-lg shadow-md hover:shadow-lg transition-transform duration-200 transform hover:scale-105 flex items-center gap-2 sm:gap-3 text-sm sm:text-base w-full sm:w-auto"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 size={18} className="sm:w-5 sm:h-5 animate-spin" />
+                  <span className="hidden sm:inline">Adicionando...</span>
+                  <span className="sm:hidden">Adicionando</span>
+                </>
+              ) : (
+                <>
+                  <ShoppingCart size={18} className="sm:w-5 sm:h-5" />
+                  <span className="hidden sm:inline">Adicionar ao Carrinho</span>
+                  <span className="sm:hidden">Adicionar</span>
+                </>
+              )}
+            </button>
           </div>
+        </div>
+      </div>
 
       {/* Modal de Alerta */}
       {showAlert && (

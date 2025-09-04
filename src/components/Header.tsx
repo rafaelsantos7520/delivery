@@ -6,14 +6,23 @@ import { Phone, ShoppingCart } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { useState, useEffect } from 'react';
 import { comerceData } from '@/utils/comerceData';
+import { usePathname } from 'next/navigation';
 
 export function Header() {
   const { cartCount } = useCart();
   const [hasMounted, setHasMounted] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     setHasMounted(true);
   }, []);
+
+  // Não renderiza o header se estiver em páginas administrativas
+  if (pathname.startsWith('/admin')) {
+    return null;
+  }
+
+
 
   return (
     <header className="bg-white/80 backdrop-blur-sm sticky top-0 z-40 border-b">
@@ -22,36 +31,9 @@ export function Header() {
           Açaí Prime
         </Link>
         <nav className="hidden md:flex items-center gap-6 text-lg">
-          <a 
-            href="#cardapio" 
-            className="text-gray-600 hover:text-purple-600 transition-colors cursor-pointer"
-            onClick={(e) => {
-              e.preventDefault();
-              document.getElementById('cardapio')?.scrollIntoView({ behavior: 'smooth' });
-            }}
-          >
-            Cardápio
-          </a>
-          <a 
-            href="#como-pedir" 
-            className="text-gray-600 hover:text-purple-600 transition-colors cursor-pointer"
-            onClick={(e) => {
-              e.preventDefault();
-              document.getElementById('como-pedir')?.scrollIntoView({ behavior: 'smooth' });
-            }}
-          >
-            Como Pedir
-          </a>
-          <a 
-            href="#depoimentos" 
-            className="text-gray-600 hover:text-purple-600 transition-colors cursor-pointer"
-            onClick={(e) => {
-              e.preventDefault();
-              document.getElementById('depoimentos')?.scrollIntoView({ behavior: 'smooth' });
-            }}
-          >
-            Depoimentos
-          </a>
+          <Link href="#cardapio" className="text-gray-600 hover:text-purple-600 transition-colors">Cardápio</Link>
+          <Link href="#como-pedir" className="text-gray-600 hover:text-purple-600 transition-colors">Como Pedir</Link>
+          <Link href="#depoimentos" className="text-gray-600 hover:text-purple-600 transition-colors">Depoimentos</Link>
         </nav>
         <div className="flex items-center gap-4">
             <Link href="/checkout">

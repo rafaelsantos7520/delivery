@@ -22,7 +22,7 @@ export interface ProductVariation {
 export interface Complement {
   id: string;
   name: string;
-  type: 'acompanhamento' | 'cobertura' | 'fruta';
+  type: 'ACOMPANHAMENTO' | 'COBERTURA' | 'FRUTA';
   extraPrice: number;
   included: boolean;
   imageUrl?: string;

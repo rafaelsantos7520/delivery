@@ -4,7 +4,6 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 import { notFound } from 'next/navigation';
-import { Header } from '@/components/Header';
 import ProductCustomizationClient from './ProductCustomizationClient';
 
 interface ProductCustomizationPageProps {
@@ -18,6 +17,7 @@ export default async function ProductCustomizationPage({ params }: ProductCustom
     where: { id: productId },
     include: {
       variations: true,
+      categoryRelation: true,
       complements: {
         include: {
           complement: true,

@@ -11,10 +11,17 @@ import { Filter, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
+interface Category {
+  id: string;
+  name: string;
+  description?: string;
+}
+
 export function ProductList() {
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -25,18 +32,13 @@ export function ProductList() {
   const CACHE_KEY = 'acai_products_cache';
   const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos em milliseconds
 
-  // Função para limpar cache (útil para atualizações)
-  const clearCache = () => {
-    localStorage.removeItem(CACHE_KEY);
-  };
-
-  // Função para verificar se o cache é válido
-  const isCacheValid = (timestamp: number) => {
-    return Date.now() - timestamp < CACHE_DURATION;
-  };
-
   useEffect(() => {
-    const fetchProducts = async () => {
+    // Função para verificar se o cache é válido
+    const isCacheValid = (timestamp: number) => {
+      return Date.now() - timestamp < CACHE_DURATION;
+    };
+
+    const fetchData = async () => {
       try {
         // Verificar se existe cache válido
         const cachedData = localStorage.getItem(CACHE_KEY);
@@ -52,20 +54,26 @@ export function ProductList() {
           }
         }
 
-        // Buscar dados da API se não há cache ou cache expirado
-        const response = await fetch('/api/products');
-        const data = await response.json();
+        // Buscar produtos e categorias em paralelo
+        const [productsResponse, categoriesResponse] = await Promise.all([
+          fetch('/api/products'),
+          fetch('/api/categories')
+        ]);
         
-        // Salvar no cache com timestamp
+        const productsData = await productsResponse.json();
+        const categoriesData = await categoriesResponse.json();
+        
+        // Salvar produtos no cache com timestamp
         localStorage.setItem(CACHE_KEY, JSON.stringify({
-          data,
+          data: productsData,
           timestamp: Date.now()
         }));
         
-        setProducts(data);
-        setFilteredProducts(data);
+        setProducts(productsData);
+        setFilteredProducts(productsData);
+        setCategories(categoriesData);
       } catch (error) {
-        console.error("Failed to fetch products", error);
+        console.error("Failed to fetch data", error);
         // Em caso de erro, tentar usar cache mesmo que expirado
         const cachedData = localStorage.getItem(CACHE_KEY);
         if (cachedData) {
@@ -78,8 +86,8 @@ export function ProductList() {
       }
     };
 
-    fetchProducts();
-  }, []);
+    fetchData();
+  }, [CACHE_KEY, CACHE_DURATION]);
 
   useEffect(() => {
     let filtered = products;
@@ -92,7 +100,7 @@ export function ProductList() {
     }
 
     if (selectedCategory) {
-      filtered = filtered.filter(product => product.category === selectedCategory);
+      filtered = filtered.filter(product => product.categoryId === selectedCategory);
     }
 
     setFilteredProducts(filtered);
@@ -102,7 +110,16 @@ export function ProductList() {
     router.push(`/products/${product.id}/customize`);
   };
 
-  const categories = [...new Set(products.map(p => p.category))];
+  // Função para obter emoji da categoria
+  const getCategoryEmoji = (categoryName: string) => {
+    const name = categoryName.toLowerCase();
+    if (name.includes('açaí') || name.includes('acai')) return '🍇';
+    if (name.includes('batida')) return '🥤';
+    if (name.includes('sorvete')) return '🍦';
+    if (name.includes('bebida')) return '🥤';
+    if (name.includes('lanche')) return '🥪';
+    return '🍽️';
+  };
 
   const LoadingSkeleton = () => (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -167,13 +184,13 @@ export function ProductList() {
             </Button>
             {categories.map(category => (
               <Button
-                key={category}
-                variant={selectedCategory === category ? "default" : "outline"}
+                key={category.id}
+                variant={selectedCategory === category.id ? "default" : "outline"}
                 size="sm"
-                onClick={() => setSelectedCategory(category)}
+                onClick={() => setSelectedCategory(category.id)}
                 className="rounded-full text-xs sm:text-sm px-3 py-1.5"
               >
-                {category === 'acai' ? '🍇 Açaí' : '🥤 Batidas'}
+                {getCategoryEmoji(category.name)} {category.name}
               </Button>
             ))}
           </div>
@@ -193,17 +210,17 @@ export function ProductList() {
 
       {/* Lista de Produtos */}
       {filteredProducts.length === 0 ? (
-        <div className="text-center py-12 sm:py-16 px-4">
-          <div className="text-4xl sm:text-6xl mb-4">🔍</div>
-          <h3 className="text-lg sm:text-xl font-semibold text-gray-700 mb-2">Nenhum produto encontrado</h3>
-          <p className="text-sm sm:text-base text-gray-500">Tente ajustar os filtros ou termo de busca</p>
+        <div className="text-center py-16">
+          <div className="text-6xl mb-4">🔍</div>
+          <h3 className="text-xl font-semibold text-gray-700 mb-2">Nenhum produto encontrado</h3>
+          <p className="text-gray-500">Tente ajustar os filtros ou termo de busca</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 px-2 sm:px-0">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 auto-rows-fr">
           {filteredProducts.map((product, index) => (
             <div 
               key={product.id} 
-              className="animate-fade-in-up w-full"
+              className="animate-fade-in-up"
               style={{ animationDelay: `${index * 100}ms` }}
             >
               <ProductCard product={product} onProductClick={handleProductClick} />

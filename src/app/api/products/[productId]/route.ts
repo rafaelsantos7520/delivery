@@ -2,6 +2,10 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
+// Desabilitar cache para esta rota
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET(req: Request, { params }: { params: Promise<{ productId: string }> }) {
   try {
     const { productId } = await params;
@@ -11,9 +15,19 @@ export async function GET(req: Request, { params }: { params: Promise<{ productI
       },
       include: {
         variations: true,
+        categoryRelation: true,
+        complements: {
+          where: {
+            active: true,
+          },
+          include: {
+            complement: true,
+          },
+        },
       },
     });
-
+    
+    console.log(product);
     if (!product) {
       return new NextResponse(JSON.stringify({ message: "Product not found" }), { status: 404 });
     }
@@ -29,9 +43,9 @@ export async function PUT(req: Request, { params }: { params: Promise<{ productI
   try {
     const { productId } = await params;
     const body = await req.json();
-    const { name, description, category, imageUrl, variations } = body;
+    const { name, description, categoryId, imageUrl, variations, complementIds } = body;
 
-    if (!name || !category || !variations || variations.length === 0) {
+    if (!name || !categoryId || !variations || variations.length === 0) {
       return new NextResponse(JSON.stringify({ message: "Missing required fields" }), { status: 400 });
     }
 
@@ -40,24 +54,43 @@ export async function PUT(req: Request, { params }: { params: Promise<{ productI
         where: { productId },
       });
 
+      // Remover associações de complementos existentes
+      await tx.productComplement.deleteMany({
+        where: { productId },
+      });
+
       const product = await tx.product.update({
         where: { id: productId },
         data: {
           name,
           description,
-          category,
+          categoryId,
           imageUrl,
           variations: {
-            create: variations.map((v: { name: string; basePrice: number; includedComplements: number; includedFruits: number; }) => ({
+            create: variations.map((v: { name: string; basePrice: number; includedComplements: number; includedFruits: number; includedCoverages: number; }) => ({
               name: v.name,
               basePrice: v.basePrice,
               includedComplements: v.includedComplements,
               includedFruits: v.includedFruits,
+              includedCoverages: v.includedCoverages || 0,
             })),
           },
+          // Criar novas associações com complementos se fornecidos
+          ...(complementIds && complementIds.length > 0 && {
+            complements: {
+              create: complementIds.map((complementId: string) => ({
+                complementId,
+              })),
+            },
+          }),
         },
         include: {
           variations: true,
+          complements: {
+            include: {
+              complement: true,
+            },
+          },
         },
       });
 

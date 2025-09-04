@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ImageUpload } from "@/components/ImageUpload";
 import { Complement, ComplementType } from "@prisma/client";
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
@@ -13,10 +14,12 @@ import { useRouter, useParams } from "next/navigation";
 export default function EditComplementPage() {
   const [complement, setComplement] = useState<Complement | null>(null);
   const [name, setName] = useState('');
-  const [type, setType] = useState<ComplementType>(ComplementType.ACOMPANHAMENTO);
+  const [type, setType] = useState<ComplementType>(ComplementType.FRUTA);
   const [extraPrice, setExtraPrice] = useState(0);
   const [included, setIncluded] = useState(true);
   const [imageUrl, setImageUrl] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [shouldDeleteImage, setShouldDeleteImage] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
   const params = useParams();
@@ -47,15 +50,68 @@ export default function EditComplementPage() {
     }
   }, [complementId]);
 
+  const handleImageChange = (data: { file: File | null; currentUrl: string; shouldDelete: boolean }) => {
+    setImageFile(data.file);
+    setShouldDeleteImage(data.shouldDelete);
+    
+    if (data.file) {
+      // Se há um novo arquivo, não alterar a URL atual ainda
+      // A URL será atualizada após o upload no submit
+    } else if (data.shouldDelete) {
+      // Se deve deletar, limpar a URL
+      setImageUrl('');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
     try {
-      const response = await fetch(`/api/complements/${complementId}`, {
+      let finalImageUrl = imageUrl;
+
+      // Se deve deletar a imagem atual
+      if (shouldDeleteImage && imageUrl) {
+        try {
+          const deleteResponse = await fetch('/api/delete-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageUrl }),
+          });
+          
+          if (deleteResponse.ok) {
+            finalImageUrl = '';
+          }
+        } catch (deleteErr) {
+          console.warn('Erro ao deletar imagem anterior:', deleteErr);
+        }
+      }
+
+      // Se há um arquivo para upload, fazer o upload
+      if (imageFile) {
+        const formData = new FormData();
+        formData.append('file', imageFile);
+        formData.append('bucket', 'acai-prime');
+        formData.append('folder', 'complements');
+
+        const uploadResponse = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (uploadResponse.ok) {
+          const uploadData = await uploadResponse.json();
+          finalImageUrl = uploadData.url;
+        } else {
+          setError('Erro no upload da imagem');
+          return;
+        }
+      }
+
+      const response = await fetch(`/api/complements/${params.complementId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, type, extraPrice, included, imageUrl }),
+        body: JSON.stringify({ name, type, extraPrice, included, imageUrl: finalImageUrl }),
       });
 
       if (response.ok) {
@@ -105,10 +161,11 @@ export default function EditComplementPage() {
             <Switch id="included" checked={included} onCheckedChange={setIncluded} />
             <Label htmlFor="included">Incluso na contagem do tamanho</Label>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="imageUrl">URL da Imagem</Label>
-            <Input id="imageUrl" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
-          </div>
+          <ImageUpload
+            label="Imagem do Complemento"
+            value={imageUrl}
+            onChange={handleImageChange}
+          />
 
           {error && <p className="text-sm text-red-500">{error}</p>}
           <div className="flex justify-end space-x-4">

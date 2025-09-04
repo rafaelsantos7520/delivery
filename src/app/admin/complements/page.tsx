@@ -9,11 +9,18 @@ import { PlusCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Loading } from "@/components/ui/loading";
+import Image from "next/image";
+import { ImageIcon } from "lucide-react";
 
 export default function ComplementsPage() {
   const [complements, setComplements] = useState<Complement[]>([]);
   const [loading, setLoading] = useState(true);
+  const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
   const router = useRouter();
+
+  const handleImageError = (complementId: string) => {
+    setImageErrors(prev => new Set(prev).add(complementId));
+  };
 
   const fetchComplements = async () => {
     try {
@@ -65,6 +72,7 @@ export default function ComplementsPage() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Imagem</TableHead>
               <TableHead>Nome</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead>Preço Extra</TableHead>
@@ -76,6 +84,25 @@ export default function ComplementsPage() {
           <TableBody>
             {complements.map((complement) => (
               <TableRow key={complement.id}>
+                <TableCell>
+                  <div className="w-16 h-16 relative rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
+                    {complement.imageUrl && !imageErrors.has(complement.id) ? (
+                      <Image
+                        src={complement.imageUrl}
+                        alt={complement.name}
+                        fill
+                        className="object-cover"
+                        sizes="64px"
+                        onError={() => handleImageError(complement.id)}
+                      />
+                    ) : (
+                      <div className="text-gray-400 text-xs text-center flex flex-col items-center">
+                        <ImageIcon className="h-6 w-6 mb-1" />
+                        <span>Sem imagem</span>
+                      </div>
+                    )}
+                  </div>
+                </TableCell>
                 <TableCell>{complement.name}</TableCell>
                 <TableCell>{complement.type}</TableCell>
                 <TableCell>R$ {complement.extraPrice.toFixed(2)}</TableCell>
