@@ -1,6 +1,7 @@
 
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { revalidateTag } from 'next/cache';
 
 // Desabilitar cache para esta rota
 export const dynamic = 'force-dynamic';
@@ -69,6 +70,7 @@ export async function POST(req: Request) {
       },
     });
 
+    revalidateTag('products');
     return NextResponse.json(product, { status: 201 });
   } catch (error) {
     console.error('[PRODUCTS_POST]', error);

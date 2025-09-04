@@ -1,6 +1,7 @@
 
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { revalidateTag } from 'next/cache';
 
 export async function GET() {
   try {
@@ -31,6 +32,7 @@ export async function POST(req: Request) {
       },
     });
 
+    revalidateTag('products');
     return NextResponse.json(complement, { status: 201 });
   } catch (error) {
     console.error('[COMPLEMENTS_POST]', error);

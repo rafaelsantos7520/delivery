@@ -1,6 +1,7 @@
 
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { revalidateTag } from 'next/cache';
 
 // Desabilitar cache para esta rota
 export const dynamic = 'force-dynamic';
@@ -113,6 +114,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ produ
       },
     });
 
+    revalidateTag('products');
     return new NextResponse(null, { status: 204 });
   } catch (error) {
     console.error('[PRODUCT_DELETE]', error);

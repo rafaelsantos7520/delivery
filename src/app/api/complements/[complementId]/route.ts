@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { revalidateTag } from 'next/cache';
 
 export async function GET(req: Request, 
   { params }: { params: Promise<{complementId: string}>}) 
@@ -48,6 +49,7 @@ export async function PUT(req: Request,
       },
     });
 
+    revalidateTag('products');
     return NextResponse.json(complement);
   } catch (error) {
     console.error('[COMPLEMENT_PUT]', error);
