@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import prisma from '@/lib/prisma';
 
 // GET - Buscar categoria por ID
@@ -94,6 +95,7 @@ export async function PUT(
       }
     });
 
+    revalidateTag('categories');
     return NextResponse.json(category);
   } catch (error) {
     console.error('Erro ao atualizar categoria:', error);
@@ -144,6 +146,7 @@ export async function DELETE(
       }
     });
 
+    revalidateTag('categories');
     return NextResponse.json({ message: 'Categoria deletada com sucesso' });
   } catch (error) {
     console.error('Erro ao deletar categoria:', error);
