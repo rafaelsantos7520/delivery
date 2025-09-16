@@ -34,6 +34,7 @@ export default function NewCategoryPage() {
       });
 
       if (response.ok) {
+        router.refresh();
         router.push('/admin/categories');
       } else {
         const errorData = await response.json();

@@ -50,7 +50,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ productI
       return new NextResponse(JSON.stringify({ message: "Missing required fields" }), { status: 400 });
     }
 
-    const updatedProduct = await prisma.$transaction(async (tx) => {
+    const updatedProduct = await prisma.$transaction(async (tx: typeof prisma) => {
       await tx.productVariation.deleteMany({
         where: { productId },
       });
@@ -98,6 +98,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ productI
       return product;
     });
 
+    revalidateTag('products');
     return NextResponse.json(updatedProduct);
   } catch (error) {
     console.error('[PRODUCT_PUT]', error);

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import prisma from '@/lib/prisma';
 
 // GET - Listar todas as categorias
@@ -59,6 +60,7 @@ export async function POST(request: NextRequest) {
       }
     });
 
+    revalidateTag('categories');
     return NextResponse.json(category, { status: 201 });
   } catch (error) {
     console.error('Erro ao criar categoria:', error);

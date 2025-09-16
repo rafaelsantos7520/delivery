@@ -39,6 +39,7 @@ export const getCategories = cache(
   },
   ['categories'], // Chave do cache
   { 
-    revalidate: 3600 // 1 hora
+    revalidate: 3600, // 1 hora
+    tags: ['categories'] // Tag para revalidação sob demanda
   }
 );

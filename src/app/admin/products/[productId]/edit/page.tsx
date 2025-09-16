@@ -41,6 +41,7 @@ export default function EditProductPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const router = useRouter();
   const params = useParams();
   const productId = params.productId as string;
@@ -129,6 +130,7 @@ export default function EditProductPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSaving(true);
 
     try {
       let finalImageUrl = imageUrl;
@@ -185,6 +187,7 @@ export default function EditProductPage() {
       });
 
       if (response.ok) {
+        router.refresh();
         router.push('/admin/products');
       } else {
         const data = await response.json();
@@ -192,6 +195,8 @@ export default function EditProductPage() {
       }
     } catch {
       setError('An unexpected error occurred');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -303,8 +308,8 @@ export default function EditProductPage() {
 
           {error && <p className="text-sm text-red-500">{error}</p>}
           <div className="flex justify-end space-x-4">
-            <Button type="button" variant="outline" onClick={() => router.back()}>Cancelar</Button>
-            <Button type="submit">Salvar Alterações</Button>
+            <Button type="button" variant="outline" onClick={() => router.back()} disabled={saving}>Cancelar</Button>
+            <Button type="submit" disabled={saving}>{saving ? 'Salvando...' : 'Salvar Alterações'}</Button>
           </div>
         </form>
       </CardContent>

@@ -38,6 +38,7 @@ export default function NewProductPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -104,6 +105,7 @@ export default function NewProductPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSaving(true);
 
     try {
       let finalImageUrl = imageUrl;
@@ -143,6 +145,7 @@ export default function NewProductPage() {
       });
 
       if (response.ok) {
+        router.refresh();
         router.push('/admin/products');
       } else {
         const data = await response.json();
@@ -150,6 +153,8 @@ export default function NewProductPage() {
       }
     } catch {
       setError('An unexpected error occurred');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -261,8 +266,8 @@ export default function NewProductPage() {
 
           {error && <p className="text-sm text-red-500">{error}</p>}
           <div className="flex justify-end space-x-4">
-            <Button type="button" variant="outline" onClick={() => router.back()}>Cancelar</Button>
-            <Button type="submit">Salvar</Button>
+            <Button type="button" variant="outline" onClick={() => router.back()} disabled={saving}>Cancelar</Button>
+            <Button type="submit" disabled={saving}>{saving ? 'Salvando...' : 'Salvar'}</Button>
           </div>
         </form>
       </CardContent>

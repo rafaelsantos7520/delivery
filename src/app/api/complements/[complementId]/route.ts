@@ -68,6 +68,7 @@ export async function DELETE(req: Request,
       },
     });
 
+    revalidateTag('products');
     return new NextResponse(null, { status: 204 });
   } catch (error) {
     console.error('[COMPLEMENT_DELETE]', error);
