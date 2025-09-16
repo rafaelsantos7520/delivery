@@ -1,6 +1,7 @@
 
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import type { Prisma } from '@prisma/client';
 import { revalidateTag } from 'next/cache';
 
 // Desabilitar cache para esta rota
@@ -50,7 +51,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ productI
       return new NextResponse(JSON.stringify({ message: "Missing required fields" }), { status: 400 });
     }
 
-    const updatedProduct = await prisma.$transaction(async (tx: typeof prisma) => {
+    const updatedProduct = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       await tx.productVariation.deleteMany({
         where: { productId },
       });
